@@ -1,7 +1,5 @@
 # Rimefall — demo ampliada
 
-**Autor: Bruno · versão 0.2.0 · Linux x86-64**
-
 Sobrevivência tática em primeira pessoa durante um cerco ártico. Quatro soldados defendem um posto de testes de **84 × 84 metros**, com três ondas de criaturas cegas. O equipamento fica no campo após a morte; o conhecimento passa ao esquadrão.
 
 Implementado em **Common Lisp/SBCL**, exclusivamente com **LWLGL** para OpenGL 3.3, entrada e OpenAL. Os modelos são autorais, construídos e exportados pelo **Blender MCP**. O peso das armas, a mira, as recargas deliberadas e a vulnerabilidade seguem a referência de sensação de Hell Let Loose. Esta é uma demo individual, sem multijogador; o mapa principal futuro não faz parte dela.
