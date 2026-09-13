@@ -1,0 +1,14 @@
+*.fasl
+__pycache__/
+*.pyc
+modelos/*.blend1
+distribuicao/
+validacao/*.ppm
+validacao/*.sha256
+validacao/*terminal.log
+validacao/nativa-estado.sexp
+validacao/resultado-interacao.txt
+validacao/dados/*
+!validacao/dados/memoria.sexp
+rimefall-demo-*.tar.gz
+rimefall-demo-*.tar.gz.sha256

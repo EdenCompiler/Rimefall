@@ -1,0 +1,47 @@
+; Definição compartilhada: medidas em metros, coordenadas X/Z.
+parede -5 23 1 9 2.8 abrigo
+parede 5 23 1 9 2.8 abrigo
+parede 0 27 11 1 2.8 abrigo
+parede -9 13 12 1.2 1.25 sacos
+parede 9 13 12 1.2 1.25 sacos
+parede -15 6 1.2 13 1.5 sacos
+parede 15 6 1.2 13 1.5 sacos
+parede -7 0 10 1.2 1.35 sacos
+parede 7 0 10 1.2 1.35 sacos
+parede -20 -7 6 8 3.4 deposito
+parede 19 -8 7 6 3.4 deposito
+parede -7 -13 4 3 1.7 caixa
+parede 8 -17 5 3 1.6 caixa
+parede -10 20 3 3 1.6 caixa
+parede 11 21 4 3 1.8 caixa
+superficie 0 22 8.8 8 madeira
+superficie 0 6 5 9 metal
+superficie -19 15 7 6 gelo
+superficie 20 4 6 7 gelo
+porta 0 13 5.6 0.25 2.0
+suprimento 3 18 escopeta 0 8 0 nenhum
+suprimento -11 6 nenhuma 6 0 2 nenhum
+suprimento 11 -5 nenhuma 4 4 2 nenhum
+suprimento -24 4 nenhuma 4 0 0 temporizador
+suprimento 24 -7 nenhuma 0 4 0 bipé
+parede -42 0 1 84 3 rocha
+parede 42 0 1 84 3 rocha
+parede 0 -42 84 1 3 rocha
+parede 0 42 84 1 3 rocha
+parede -12 -27 10 1.2 1.3 sacos
+parede 12 -27 10 1.2 1.3 sacos
+parede -30 -20 5 7 3.2 deposito
+parede 29 -23 6 7 3.2 deposito
+parede 0 -33 5 3 1.4 caixa
+parede -22 31 6 1.2 1.3 sacos
+parede 22 31 6 1.2 1.3 sacos
+parede -28 10 2.8 3 1.3 caixa
+parede 29 -3 3 2 1.3 caixa
+superficie 0 -25 5 14 metal
+superficie -27 -32 8 8 gelo
+superficie 26 -33 8 5 madeira
+suprimento -24 -32 carabina 0 0 0 nenhum 16 0
+suprimento 25 -32 submetralhadora 0 0 0 nenhum 0 40
+suprimento 0 34 nenhuma 4 2 1 nenhum 8 0
+suprimento -35 20 precisao 0 0 0 nenhum 0 0 20 0
+suprimento 35 19 franco-atirador 0 0 0 nenhum 0 0 0 10

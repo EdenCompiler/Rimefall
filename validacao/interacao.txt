@@ -1,0 +1,4 @@
+Estado nativo conferido.
+Estado nativo conferido.
+Interface nativa aprovada: configurações, remapeamento, diário acentuado, coleta, recarga, mira, gravação, continuação, mapa e dispositivo.
+X connection to :116 broken (explicit kill or server shutdown).
