@@ -280,6 +280,98 @@ for grupo in ('precisao','franco-atirador'):
     haste(grupo_culatra,'Alavanca lateral',(.03,-.035,-.04),(.16,-.035,-.02),.015,metal)
     volume(grupo_culatra,'Manopla lateral',(.16,-.035,-.02),(.023,.023,.023),metal)
 
+# Assets da guerra: duas identidades visuais e peças próprias para cada função.
+aurora = material('Azul Aurora', (.22,.38,.48))
+bruma = material('Cinza Bruma', (.33,.28,.30))
+insignia_aurora = material('Insígnia Aurora', (.72,.82,.85))
+insignia_bruma = material('Insígnia Bruma', (.64,.40,.35))
+
+def animar_membro(objeto, eixo=0):
+    # A simulação usa movimento procedural; estes quadros preservam uma prévia editável no Blender.
+    objeto.rotation_mode = 'XYZ'
+    objeto.rotation_euler[eixo] = -.18
+    objeto.keyframe_insert(data_path='rotation_euler', frame=1)
+    objeto.rotation_euler[eixo] = .18
+    objeto.keyframe_insert(data_path='rotation_euler', frame=12)
+    objeto.rotation_euler[eixo] = -.18
+    objeto.keyframe_insert(data_path='rotation_euler', frame=24)
+
+def soldado_guerra(grupo, tinta, emblema, funcao):
+    volume(grupo,'Capacete',(0,1.78,0),(.28,.25,.25),tinta)
+    volume(grupo,'Cabeça',(0,1.55,0),(.22,.25,.20),pele)
+    bloco(grupo,'Colete',(0,1.05,0),(.52,.72,.30),tinta,.06)
+    bloco(grupo,'Placa de identificação',(0,1.14,-.17),(.20,.13,.025),emblema,.01)
+    esquerdo = haste(grupo,'Braço esquerdo',(-.30,1.28,0),(-.42,.73,-.06),.12,tinta,ponta=.08)
+    direito = haste(grupo,'Braço direito',(.30,1.28,0),(.42,.73,-.06),.12,tinta,ponta=.08)
+    perna_esquerda = haste(grupo,'Perna esquerda',(-.14,.78,0),(-.18,.12,.06),.15,tinta,ponta=.10)
+    perna_direita = haste(grupo,'Perna direita',(.14,.78,0),(.18,.12,.06),.15,tinta,ponta=.10)
+    bloco(grupo,'Bota esquerda',(-.18,.08,-.10),(.20,.16,.38),metal,.03)
+    bloco(grupo,'Bota direita',(.18,.08,-.10),(.20,.16,.38),metal,.03)
+    if funcao == 'medico':
+        bloco(grupo,'Bolsa médica',(-.42,1.0,.10),(.25,.30,.22),insignia_aurora if emblema == insignia_aurora else insignia_bruma,.03)
+        bloco(grupo,'Faixa médica',(0,1.58,.19),(.18,.12,.025),emblema)
+    elif funcao == 'suporte':
+        bloco(grupo,'Mochila de munição',(0,1.0,.23),(.38,.55,.20),metal,.04)
+        bloco(grupo,'Caixa de cartuchos',(.30,.82,.05),(.20,.17,.32),metal,.02)
+    elif funcao == 'engenheiro':
+        bloco(grupo,'Ferramentas',(-.38,.92,.18),(.22,.45,.16),madeira,.03)
+        haste(grupo,'Pá',(.38,.87,.10),(.46,.20,.10),.025,metal)
+    elif funcao == 'comandante':
+        bloco(grupo,'Rádio de ombro',(.35,1.30,.18),(.17,.28,.10),metal,.02)
+        haste(grupo,'Antena',(.35,1.46,.18),(.35,1.86,.18),.012,metal)
+    else:
+        haste(grupo,'Rifle em mãos',(-.22,1.13,-.08),(.24,.87,-.48),.035,metal)
+    for membro in (esquerdo,direito,perna_esquerda,perna_direita):
+        animar_membro(membro, 0 if 'Braço' in membro.name else 1)
+
+for prefixo, tinta, emblema in (('aurora',aurora,insignia_aurora),('bruma',bruma,insignia_bruma)):
+    for funcao in ('fuzileiro','medico','suporte','engenheiro','comandante'):
+        soldado_guerra('soldado-'+prefixo+'-'+funcao, tinta, emblema, funcao)
+
+# Armas e logística do campo de batalha.
+bloco('metralhadora','Caixa da metralhadora',(0,-.06,.0),(.16,.15,.38),metal,.02)
+bloco('metralhadora','Cano pesado',(0,-.06,-.42),(.08,.08,.55),metal,.015)
+bloco('metralhadora','Carregador de fita',(0,-.25,-.04),(.18,.22,.30),lona,.02)
+for lado in (-1,1):
+    haste('metralhadora','Bipé de metralhadora',(lado*.06,-.14,-.35),(lado*.20,-.55,-.42),.018,metal)
+bloco('pistola','Corpo',(0,-.16,-.06),(.10,.20,.25),metal,.02)
+bloco('pistola','Empunhadura',(0,-.29,.07),(.09,.30,.12),madeira,.02)
+haste('pistola','Cano',(0,-.15,-.20),(0,-.15,-.40),.025,metal)
+bloco('morteiro','Placa base',(0,.04,.18),(.68,.10,.48),metal,.04)
+haste('morteiro','Tubo',(0,.66,0),(0,.12,0),.11,metal,ponta=.07)
+for lado in (-1,1): haste('morteiro','Perna de apoio',(lado*.22,.10,.12),(lado*.38,-.12,.30),.025,metal)
+bloco('radio-campo','Rádio',(0,.20,0),(.38,.40,.20),lona,.04)
+haste('radio-campo','Antena',(0,.42,0),(0,1.18,0),.018,metal)
+bloco('radio-campo','Manivela',(.24,.16,0),(.10,.10,.16),metal)
+bloco('caminhao','Carroceria',(0,.75,0),(2.20,1.25,4.50),lona,.10)
+bloco('caminhao','Cabine',(0,1.55,1.42),(2.10,1.20,1.42),metal,.09)
+bloco('caminhao','Para-brisa',(0,1.72,.69),(1.72,.55,.035),concreto,.01)
+for lado in (-1,1):
+    for z in (-1.45,1.40):
+        bpy.ops.mesh.primitive_cylinder_add(vertices=10, radius=.43, depth=.24, location=ponto(lado*1.12,.43,z), rotation=(0,math.pi/2,0))
+        guardar(bpy.context.object,'caminhao','Roda de transporte',metal)
+bloco('caminhao','Caixa de suprimentos',(0,1.20,-.85),(1.60,.55,1.35),madeira,.05)
+
+# Novos monstros, com silhuetas distintas para as invasões.
+volume('monstro-rastreador','Corpo baixo',(0,.70,0),(.70,.45,1.0),pele)
+volume('monstro-rastreador','Cabeça alongada',(0,.88,-.72),(.45,.38,.60),osso)
+for lado in (-1,1):
+    haste('monstro-rastreador','Membro dianteiro',(lado*.40,.73,-.35),(lado*.85,.28,-.55),.16,pele,ponta=.05)
+    haste('monstro-rastreador','Membro traseiro',(lado*.40,.62,.35),(lado*.72,.20,.65),.18,pele,ponta=.06)
+for indice in range(5):
+    haste('monstro-rastreador','Barbela',(0,.82-.08*indice,-.98),(0,.74-.08*indice,-1.25),.06,osso,ponta=.01)
+volume('monstro-couracado','Peito blindado',(0,1.10,0),(.80,.90,.52),osso)
+volume('monstro-couracado','Crânio',(0,1.68,-.28),(.42,.40,.43),pele)
+for lado in (-1,1):
+    haste('monstro-couracado','Braço espesso',(lado*.58,1.30,0),(lado*.92,.48,-.25),.23,pele,ponta=.15)
+    haste('monstro-couracado','Perna espessa',(lado*.32,.73,.12),(lado*.40,.12,.38),.24,pele,ponta=.16)
+for indice in range(4):
+    bloco('monstro-couracado','Placa de gelo',((indice-1.5)*.32,1.26,.48),(.24,.42,.10),osso,.03)
+volume('monstro-enxame','Núcleo',(0,1.20,0),(.48,.58,.48),boca)
+for indice in range(8):
+    angulo = indice*math.tau/8
+    haste('monstro-enxame','Tentáculo',(0,1.20,0),(math.cos(angulo)*.95,.62+(.2 if indice%2 else 0),math.sin(angulo)*.95),.06,pele,ponta=.015)
+
 # Exporta a malha avaliada do Blender, triangulada, com iluminação plana por face.
 bpy.context.view_layer.update()
 direcao_luz = Vector((-.35,-.5,1)).normalized()

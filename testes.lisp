@@ -134,6 +134,7 @@
     (testar-combate-e-recuperacao) (testar-colisoes-e-ondas)
     (testar-expansao-combate) (testar-clima-e-portas) (testar-chamador-e-dispositivo)
     (testar-exploracao) (testar-persistencia) (testar-novas-armas-e-mapa) (testar-cone-optico)
+    (testar-guerra)
     (format t "~&~D verificações concluídas sem falhas.~%" *verificacoes*) t))
 
 (defun testar-expansao-combate ()
@@ -398,3 +399,43 @@
     (verificar (calcular-rota sessao 0.0 23.0 25.0 -32.0))
     (verificar (calcular-rota sessao -37.0 -28.0 0.0 23.0))
     (verificar (calcular-rota sessao 37.0 -28.0 0.0 23.0))))
+
+(defun testar-guerra ()
+  (let* ((guerra (criar-guerra-offline :jogadores-por-lado 8))
+         (comandante (find-if (lambda (j) (eq (jogador-guerra-funcao j) :comandante))
+                              (guerra-jogadores guerra)))
+         (medico (find-if (lambda (j) (eq (jogador-guerra-funcao j) :medico))
+                          (guerra-jogadores guerra)))
+         (alvo (first (guerra-jogadores guerra)))
+         (rele (criar-rele-local)))
+    (verificar (= (length (guerra-jogadores guerra)) 16) "Guerra cria 8 contra 8")
+    (verificar (= (length (guerra-esquadroes guerra)) 4) "Guerra cria quatro esquadrões")
+    (verificar (= (length (guerra-setores guerra)) 5) "Guerra cria cinco setores")
+    (verificar (enviar-ordem-guerra guerra comandante :atacar))
+    (verificar (enviar-ping-guerra guerra comandante 0.0 -240.0 "ATACAR"))
+    (incapacitar-jogador-guerra guerra alvo)
+    (verificar (estabilizar-jogador-guerra guerra medico alvo))
+    (verificar (reanimar-jogador-guerra guerra medico alvo))
+    (verificar (eq (jogador-guerra-estado alvo) :ativo))
+    (matar-jogador-guerra guerra alvo "Teste")
+    (verificar (= (exercito-reforcos (jogador-guerra-exercito alvo)) 31))
+    (verificar (member alvo (exercito-fila-reforcos (jogador-guerra-exercito alvo))))
+    (preparar-cliente-rede rele 1) (preparar-cliente-rede rele 2)
+    (verificar (equal (codificar-comando-rede
+                       (criar-comando-guerra :quadro 1 :jogador 0 :tipo :texto
+                                             :dados (list :texto "teste" :canal :comando)))
+                      (codificar-comando-rede
+                       (decodificar-comando-rede
+                        (codificar-comando-rede
+                         (criar-comando-guerra :quadro 1 :jogador 0 :tipo :texto
+                                               :dados (list :texto "teste" :canal :comando)))))))
+    (registrar-ruido-guerra guerra 0.0 0.0 3000.0 :tiro)
+    (verificar (guerra-invasao guerra) "Ruído crítico inicia aviso de invasão")
+    (verificar (gravar-guerra guerra #P"/tmp/rimefall-guerra-teste.sexp"))
+    (verificar (guerra-p (carregar-guerra #P"/tmp/rimefall-guerra-teste.sexp")))
+    (delete-file #P"/tmp/rimefall-guerra-teste.sexp"))
+  (let* ((guerra (criar-guerra-offline :jogadores-por-lado 8))
+         (bruma (localizar-exercito-guerra guerra :bruma)))
+    (verificar (eq (aplicar-dano-qg guerra bruma 1001.0 "Teste") :destruido))
+    (verificar (eq (guerra-fase guerra) :vitoria))
+    (verificar (eq (guerra-vencedor guerra) :aurora))))

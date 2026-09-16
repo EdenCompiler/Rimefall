@@ -12,11 +12,16 @@
       (let* ((pasta (uiop:pathname-directory-pathname sb-ext:*runtime-pathname*))
              (rimefall::*pasta-modelos* (merge-pathnames "modelos/" pasta))
              (argumentos (rest sb-ext:*posix-argv*)))
-        (apply #'rimefall:iniciar-jogo
+        (if (member "--guerra" argumentos :test #'string=)
+            (let ((guerra (rimefall:iniciar-guerra :jogadores-por-lado 8 :quadros 3600)))
+              (format t "~&Guerra offline concluída: ~A / quadro ~D / hash ~D~%"
+                      (rimefall::guerra-fase guerra) (rimefall::guerra-quadro guerra)
+                      (rimefall::hash-estado-guerra guerra)))
+            (apply #'rimefall:iniciar-jogo
                (append (when (member "--validar" argumentos :test #'string=)
                          (list :validacao t :quadros-maximos 3780 :sincronizar nil
                                :pasta-capturas (merge-pathnames "validacao/" pasta)))
-                       (when (member "--sem-audio" argumentos :test #'string=) (list :sem-audio t)))))
+                       (when (member "--sem-audio" argumentos :test #'string=) (list :sem-audio t))))))
     (error (condicao)
       (format *error-output* "~&Não foi possível executar Rimefall: ~A~%" condicao)
       (sb-ext:exit :code 1))))

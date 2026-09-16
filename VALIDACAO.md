@@ -1,16 +1,17 @@
 # Validação da demo ampliada
 
-**Versão 0.2.0 · 13 de setembro de 2026 · Linux x86-64**
+**Versão 0.3.0 · 16 de setembro de 2026 · Linux x86-64**
 
 ## Resultado
 
-- **229 verificações do núcleo aprovadas**, executadas novamente pela compilação final.
+- **246 verificações do núcleo aprovadas**, executadas novamente pela compilação final.
 - Executável gerado com SBCL 2.5.2 e LWLGL 2.2.0, com Bruno como autor no ASDF.
 - Seis armas funcionais, incluindo fuzil de precisão com luneta 2× e fuzil de franco-atirador com luneta 4×.
 - Mapa de testes ampliado para 84 × 84 metros, preservando quatro soldados, três ondas de 3/4/5 criaturas e morte após dois ataques.
-- Trinta malhas atuais criadas pelo Blender MCP, com fonte editável e gerador incluídos. O cenário contém 18.972 triângulos.
+- Quarenta e oito grupos de malha do posto e 38.680 triângulos do mapa principal, todos criados pelo Blender MCP, com fontes editáveis e geradores incluídos. O cenário do posto contém 18.972 triângulos; os novos grupos cobrem funções Aurora e Bruma, armas de apoio, caminhão e três monstros.
 - Ensaio completo do executável iniciado a partir de `/tmp`, carregando seus modelos independentemente da pasta de trabalho.
 - Interação nativa por teclado e mouse aprovada em uma janela virtual: configurações, remapeamento, diário acentuado, coleta, recarga, mira, gravação, continuação, marcas no mapa e dispositivo.
+- Protótipo offline da guerra validado com 16 soldados, quatro esquadrões, cinco setores, ordens, pings, incapacitação, fila de reforços, logística, invasão e salvamento acíclico.
 
 ## Cobertura das regras
 
@@ -38,7 +39,7 @@ Blender e jogo foram executados exclusivamente em X11 virtual, com `WAYLAND_DISP
 
 Renderizador observado: **llvmpipe (LLVM 19.1.7, 256 bits)**, **OpenGL 4.5 Core Profile**, **Mesa 25.0.7-2+deb13u1**. A aplicação utiliza a interface OpenGL 3.3.
 
-O executável final mediu **50,7 quadros/s em 1280 × 720**, com **3.750 quadros em 73,93 segundos**, VSync desativado no ensaio.
+O executável final mediu **49,6 quadros/s em 1280 × 720**, com **3.750 quadros em 75,65 segundos**, VSync desativado no ensaio.
 
 Trata-se de renderização por software em Xvfb, incluindo capturas e telas de interface. A meta de 60 quadros/s não foi atingida nesse ensaio; não foi medido o desempenho desta versão em uma GPU dedicada.
 
@@ -52,6 +53,7 @@ Trata-se de renderização por software em Xvfb, incluindo capturas e telas de i
 - [Fuzil de precisão em mira](validacao/quadro-2950.png)
 - [Fuzil de franco-atirador em mira](validacao/quadro-3630.png)
 - [Inventário de malhas](modelos/inventario.txt)
+- [Mapa principal da guerra](validacao/mapa-guerra.png) e [inventário da guerra](modelos/inventario-guerra.txt)
 
 ## Reproduzir
 

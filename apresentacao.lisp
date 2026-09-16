@@ -215,7 +215,7 @@ void main() {
 (defvar *pasta-modelos* nil)
 (defun carregar-modelos ()
   (let ((modelos (make-hash-table :test #'equal)))
-    (dolist (nome '("posto" "criatura" "perna-esquerda" "perna-direita" "fuzil" "escopeta" "suprimento" "braco-esquerdo" "braco-direito" "braco-criatura-esquerdo" "braco-criatura-direito" "corpo" "isca" "clarao" "chamador" "porta" "temporizador" "bipe" "ferrolho" "telha" "carabina" "submetralhadora" "culatra" "culatra-submetralhadora" "carregador-submetralhadora" "cartucho" "precisao" "franco-atirador" "culatra-precisao" "ferrolho-longo"))
+    (dolist (nome '("posto" "guerra" "criatura" "perna-esquerda" "perna-direita" "fuzil" "escopeta" "suprimento" "braco-esquerdo" "braco-direito" "braco-criatura-esquerdo" "braco-criatura-direito" "corpo" "isca" "clarao" "chamador" "porta" "temporizador" "bipe" "ferrolho" "telha" "carabina" "submetralhadora" "culatra" "culatra-submetralhadora" "carregador-submetralhadora" "cartucho" "precisao" "franco-atirador" "culatra-precisao" "ferrolho-longo"))
       (let* ((caminho (merge-pathnames (format nil "~A.malha" nome)
                                      (or *pasta-modelos* (asdf:system-relative-pathname "rimefall" "modelos/"))))
              (*read-eval* nil)
@@ -232,6 +232,13 @@ void main() {
 (defun desenhar-modelo (nome matriz uniforme)
   (lwlgl.opengl:set-uniform-mat4 uniforme matriz)
   (desenhar-malha (gethash nome *modelos*)))
+
+(defun desenhar-campo-guerra (projecao visao uniforme)
+  "Desenha o mapa de um quilômetro reduzido para a vista de reconhecimento da frente."
+  (let ((base (lwlgl.math:mat4-mul projecao visao)))
+    (desenhar-modelo "guerra"
+                     (compor-matrizes base (lwlgl.math:scale-mat4 .08 .08 .08))
+                     uniforme)))
 
 (defun desenhar-campo (sessao projecao visao uniforme dinamica)
   (let ((base (lwlgl.math:mat4-mul projecao visao)))
@@ -531,17 +538,26 @@ void main() {
                             (when validacao (setf sessao (roteiro-expansao sessao quadros)))
                             (when (and *gravacao-bloqueada* (eq (sessao-fase sessao) :combate))
                               (setf (sessao-fase sessao) :pausa))
-                            (let ((em-combate (eq (sessao-fase sessao) :combate)))
+                            (let ((em-combate (member (sessao-fase sessao) '(:combate :guerra))))
                               (unless (eq em-combate capturado)
                                 (janela:set-input-mode janela janela:cursor
                                                        (if em-combate janela:cursor-disabled janela:cursor-normal))
                                 (setf capturado em-combate))
                               (unless (eq fase-anterior (sessao-fase sessao))
-                                (unless (eq (sessao-fase sessao) :titulo) (salvar-transicao sessao))
+                                (unless (member (sessao-fase sessao) '(:titulo :guerra))
+                                  (salvar-transicao sessao))
                                 (setf *foco* (case (sessao-fase sessao) (:titulo :nova) (:notas :entrar) (:relatorio :notas)
                                                    ((:vitoria :derrota) :reiniciar) (:pausa :retomar)))
                                 (setf fase-anterior (sessao-fase sessao)))
-                              (if em-combate
+                              (if (eq (sessao-fase sessao) :guerra)
+                                  (progn
+                                    (incf acumulado intervalo)
+                                    (loop while (>= acumulado *passo-fixo*)
+                                          do (atualizar-guerra *guerra-atual* *passo-fixo*)
+                                             (atualizar-logistica-guerra *guerra-atual* *passo-fixo*)
+                                             (atualizar-invasao-guerra *guerra-atual* *passo-fixo*)
+                                             (decf acumulado *passo-fixo*)))
+                                  (if em-combate
                                   (let ((frente (if validacao 0.0 (- (if (acao-mantida-p estado :frente) 1.0 0.0)
                                                                  (if (acao-mantida-p estado :tras) 1.0 0.0))))
                                         (lado (if validacao 0.0 (- (if (acao-mantida-p estado :direita) 1.0 0.0)
@@ -551,8 +567,9 @@ void main() {
                                           do (atualizar-campo sessao *passo-fixo* :frente frente :lado lado
                                                     :gatilho (and (not validacao) (entrada:mouse-down-p estado janela:mouse-button-left)))
                                              (decf acumulado *passo-fixo*)))
-                                  (setf acumulado 0.0d0)))
-                            (salvar-periodicamente sessao)
+                                  (setf acumulado 0.0d0))))
+                            (unless (eq (sessao-fase sessao) :guerra)
+                              (salvar-periodicamente sessao))
                             (atualizar-audio sessao)
                             (multiple-value-bind (largura-real altura-real) (janela:framebuffer-size janela)
                               (when (and (plusp largura-real) (plusp altura-real))
@@ -577,12 +594,15 @@ void main() {
                                        (desejada (if (and soldado (soldado-mirando soldado)
                                                           (zerop (soldado-recarga soldado))) 1.0 0.0)))
                                   (incf mira (* (- desejada mira) (min 1.0 (* 9 (if validacao *passo-fixo* intervalo)))))
-                                  (desenhar-campo sessao
-                                    (lwlgl.math:perspective-mat4 (lwlgl.math:degrees->radians (let* ((campo (getf *configuracao* :visao))
-                                              (zoom (if soldado (ampliacao-arma (soldado-arma soldado)) 1.0)))
-                                         (- campo (* mira (if (> zoom 1.0) (- campo (/ campo zoom)) 20)))))
-                                                                 proporcao .05 95.0)
-                                    visao uniforme dinamica)
+                                  (let ((projecao (lwlgl.math:perspective-mat4
+                                                   (lwlgl.math:degrees->radians
+                                                    (let* ((campo (getf *configuracao* :visao))
+                                                           (zoom (if soldado (ampliacao-arma (soldado-arma soldado)) 1.0)))
+                                                      (- campo (* mira (if (> zoom 1.0) (- campo (/ campo zoom)) 20)))))
+                                                   proporcao .05 95.0)))
+                                    (if (eq (sessao-fase sessao) :guerra)
+                                        (desenhar-campo-guerra projecao visao uniforme)
+                                        (desenhar-campo sessao projecao visao uniforme dinamica)))
                                   (grafico:gl-uniform-1f neblina 0.0)
                                   (when (and soldado (member (sessao-fase sessao) '(:combate :pausa)))
                                     (unless (and (> mira .85) (> (ampliacao-arma (soldado-arma soldado)) 1.0))
@@ -606,7 +626,7 @@ void main() {
                               (push intervalo tempos))
                             (incf quadros)
                             (when (and quadros-maximos (>= quadros quadros-maximos)) (return)))
-                   (unless (eq (sessao-fase sessao) :titulo) (salvar-sessao sessao))
+                   (unless (member (sessao-fase sessao) '(:titulo :guerra)) (salvar-sessao sessao))
                    (when medicao-inicio
                      (let ((duracao (- (janela:get-time) medicao-inicio)))
                        (format t "~&Medição real: ~,1F quadros/s; ~D quadros; ~,2F s.~%"

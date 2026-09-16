@@ -1,6 +1,6 @@
 (defpackage #:rimefall
   (:use #:cl)
-  (:export #:iniciar-jogo #:executar-testes))
+  (:export #:iniciar-jogo #:iniciar-guerra #:executar-testes))
 (in-package #:rimefall)
 
 ;;; O catálogo é imutável. O acervo guarda evidências, nunca equipamento físico.

@@ -65,6 +65,18 @@
 (defun abrir-notas (sessao)
   (when (eq (sessao-fase sessao) :relatorio) (setf (sessao-fase sessao) :notas) (salvar-transicao sessao)))
 
+(defun iniciar-guerra (&key (jogadores-por-lado 8) (quadros 3600) (modo :offline))
+  "Executa uma simulação reproduzível do protótipo de guerra sem abrir janela."
+  (let ((guerra (criar-guerra-offline :jogadores-por-lado jogadores-por-lado)))
+    (setf (guerra-modo guerra) modo)
+    (criar-logistica-guerra guerra)
+    (dotimes (quadro quadros guerra)
+      (when (eq (guerra-fase guerra) :combate)
+        (atualizar-guerra guerra *passo-fixo*)
+        (atualizar-logistica-guerra guerra *passo-fixo*)
+        (atualizar-invasao-guerra guerra *passo-fixo*)))
+    guerra))
+
 (defun iniciar-jogo (&rest opcoes)
   "Abre a demo. As opções de validação são descritas em README.md."
   (unless (fboundp 'executar-apresentacao) (asdf:load-system "rimefall"))

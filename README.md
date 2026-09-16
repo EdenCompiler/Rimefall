@@ -1,8 +1,8 @@
-# Rimefall — demo ampliada
+# Rimefall — demo ampliada e guerra ártica
 
-Sobrevivência tática em primeira pessoa durante um cerco ártico. Quatro soldados defendem um posto de testes de **84 × 84 metros**, com três ondas de criaturas cegas. O equipamento fica no campo após a morte; o conhecimento passa ao esquadrão.
+Sobrevivência tática em primeira pessoa durante um cerco ártico. O modo **Defesa do posto** é o tutorial solo com quatro soldados e três ondas de criaturas cegas. O modo **Guerra** acrescenta dois exércitos fictícios, cinco setores e uma batalha offline de 8 contra 8 com bots.
 
-Implementado em **Common Lisp/SBCL**, exclusivamente com **LWLGL** para OpenGL 3.3, entrada e OpenAL. Os modelos são autorais, construídos e exportados pelo **Blender MCP**. O peso das armas, a mira, as recargas deliberadas e a vulnerabilidade seguem a referência de sensação de Hell Let Loose. Esta é uma demo individual, sem multijogador; o mapa principal futuro não faz parte dela.
+Implementado em **Common Lisp/SBCL**, exclusivamente com **LWLGL** para OpenGL 3.3, entrada e OpenAL. Os modelos são autorais, construídos e exportados pelo **Blender MCP**. O peso das armas, a mira, as recargas deliberadas e a vulnerabilidade seguem a referência de sensação de Hell Let Loose. A guerra usa uma frente móvel e monstros atraídos pelo som; a conexão direta usa lockstep determinístico com relé e hashes.
 
 ## Executar
 
@@ -20,6 +20,14 @@ sbcl --script compilar.lisp
 ```
 
 O executável gerado contém o SBCL e o programa carregado. Mantenha `distribuicao/modelos/` ao lado dele. Não é necessário ter Blender ou SBCL instalado para usar esse executável. Binários e pacotes da demo não são versionados no repositório.
+
+Para executar a simulação de guerra offline pelo terminal:
+
+```bash
+sbcl --script executar.lisp --guerra
+```
+
+O botão **INICIAR GUERRA / 8 CONTRA 8** abre o painel de batalha na janela. WASD move o soldado local; 1, 2 e 3 enviam ordens de ataque, defesa e reunião. Esc retorna ao tutorial. O painel usa o mesmo passo fixo, setores, bots, reforços e invasões do núcleo.
 
 **Dependências nativas:** Linux x86-64, driver com OpenGL 3.3, GLFW 3 e OpenAL. Para executar ou compilar o código-fonte: SBCL, ASDF, Quicklisp e LWLGL instalada, por exemplo em `~/quicklisp/local-projects/LWLGL`. A inicialização procura o Quicklisp em `~/quicklisp/setup.lisp`. A biblioteca usada no desenvolvimento foi a LWLGL 2.2.0 local.
 
@@ -112,6 +120,18 @@ Cada ciclo climático tem 30–45 segundos de calmaria, quatro de vento crescent
 
 Nas ondas dois e três, um **chamador** substitui uma criatura comum. Ao encontrar o soldado por contato, ele prepara um chamado por dois segundos. Eliminá-lo interrompe a ação. O chamado concluído atrai criaturas à posição do chamador, sem compartilhar a posição atual do soldado. Criaturas têm braços e pernas animados, preparação de ataque e queda gradual.
 
+## Guerra do Círculo Polar
+
+O protótipo possui os exércitos originais **União Aurora** e **Liga da Bruma**, com cores, emblemas e uniformes distintos e funções equilibradas. Cada lado começa com dois esquadrões de quatro; a meta de escala é quatro esquadrões de oito, ou 32 contra 32.
+
+O mapa principal da guerra mede **1 km²**. Ele liga os QGs por uma frente contínua com Passagem do Rio, Aldeia de Gelo, Linha das Trincheiras, Pátio Industrial e Colina do Farol. O arquivo `mapas/guerra.dat` é a referência de setores e caches; `modelos/guerra.blend` e `modelos/guerra.malha` são a cena low-poly criada no Blender MCP, com rio congelado, estradas, casas, floresta, trincheiras, galpões, tanques, farol e quatro caches opcionais.
+
+Os cinco setores — Passagem do Rio, Aldeia de Gelo, Linha das Trincheiras, Pátio Industrial e Colina do Farol — formam uma frente única. A presença superior captura a zona; contestação interrompe o progresso e a equipe adversária pode recuperar o setor. A partida dura até 60 minutos, até um quartel-general ser destruído ou até a reserva de reforços acabar.
+
+Fuzileiros, médicos, suporte, engenheiros e comandantes têm kits básicos próprios. O médico estabiliza e reanima uma vez um soldado incapacitado durante uma janela de 45 segundos. Mortes confirmadas consomem a reserva compartilhada e entram na fila do ponto de reunião. Caminhões transportam passageiros, munição e reforços; morteiros exigem operador e observador.
+
+Ruídos acumulam pressão sonora. Depois do limite e de um aviso, uma grande invasão ataca a região mais ruidosa, podendo atingir setores, comboios e quartéis. Monstros podem destruir qualquer QG e derrotar o exército. O relé de conexão direta apenas ordena comandos e compara hashes; cada cliente executa a simulação determinística.
+
 ## Salvamento
 
 Uma única sessão é gravada a cada cinco segundos de combate, ao sair normalmente e imediatamente nas mortes e transições. Inclui munição, equipamentos, inimigos, dispositivos, corpos, recargas, clima, ondas, exploração, marcas, notas e memorial. Não há seleção de salvamentos antigos.
@@ -154,14 +174,23 @@ O roteiro prepara situações e usa as mesmas ações de jogo: exploração, col
 | `campo.lisp` | Simulação, armas, terreno, audição, navegação, clima e exploração |
 | `rimefall.lisp` | Sessão, morte, transições e `rimefall:iniciar-jogo` |
 | `persistencia.lisp` | Formato de dados, salvamento, continuação e preferências |
+| `guerra.lisp` | Exércitos, esquadrões, funções, setores, reforços e objetivos |
+| `rede.lisp` | Lockstep, relé, comandos, hashes e clientes |
+| `invasoes.lisp` | Pressão sonora, hordas e dano aos quartéis |
+| `logistica.lisp` | Caminhões, morteiros, transporte e suprimentos |
+| `comunicacao.lisp` | Ordens, pings, canais e mensagens |
 | `apresentacao.lisp` | Gráficos, animações, áudio e ciclo da janela pela LWLGL |
 | `interface.lisp` | Menus, notas, memorial, mapa, configurações e entrada |
+| `interface-guerra.lisp` | Painel da frente, ordens, reforços e invasões |
 | `testes.lisp` | Verificações automáticas sem janela |
-| `mapas/posto.dat` | Definição compartilhada do terreno, colisões e suprimentos |
+| `mapas/posto.dat` | Definição compartilhada do terreno, colisões e suprimentos do tutorial |
+| `mapas/guerra.dat` | Definição dos setores, QGs, rio, floresta e caches da guerra |
 | `modelos/gerar-modelos.py` | Construção e exportação executadas pelo Blender MCP |
+| `modelos/gerar-mapa-guerra.py` | Construção e exportação do mapa principal pelo Blender MCP |
 | `modelos/rimefall.blend` | Fonte editável, com coleções independentes |
+| `modelos/guerra.blend` | Fonte editável do mapa de 1 km² da guerra |
 
-`modelos/*.malha` contém posição e cor dos triângulos exportados; não há recursos baixados de terceiros. O jogo não inicia Blender. O gerador reconstrói a cena autoral: execute-o somente no arquivo de modelos do jogo, usando uma instância separada. Peças de armas e personagens podem ser exibidas individualmente pelas coleções do Blender.
+`modelos/*.malha` contém posição e cor dos triângulos exportados; não há recursos baixados de terceiros. O jogo não inicia Blender. Os geradores reconstroem as cenas autorais: execute-os somente em instâncias separadas. As coleções incluem as cinco funções de cada exército, metralhadora, pistola, morteiro, rádio, caminhão, três monstros adicionais e o mapa completo da guerra, além das peças móveis animadas nos arquivos `.blend`.
 
 Os parâmetros de ritmo ficam no começo de `campo.lisp`, incluindo `*armamentos*`, velocidades, alcance auditivo e neblina. A simulação usa passo fixo de 1/60 s. Todos os identificadores e comentários autorais são em português; símbolos exigidos por Common Lisp, Python, GLSL e APIs conservam os nomes originais.
 
