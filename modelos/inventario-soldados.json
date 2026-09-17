@@ -1,0 +1,834 @@
+{
+  "primeira-pessoa-aurora-direito": {
+    "triangulos": 144,
+    "minimo": [
+      0.032,
+      -0.44181,
+      -0.105
+    ],
+    "maximo": [
+      0.38479,
+      -0.1146,
+      0.21002
+    ]
+  },
+  "primeira-pessoa-aurora-esquerdo": {
+    "triangulos": 144,
+    "minimo": [
+      -0.39504,
+      -0.45257,
+      -0.44
+    ],
+    "maximo": [
+      0.03244,
+      -0.1178,
+      0.18783
+    ]
+  },
+  "primeira-pessoa-bruma-direito": {
+    "triangulos": 144,
+    "minimo": [
+      0.032,
+      -0.44181,
+      -0.105
+    ],
+    "maximo": [
+      0.38479,
+      -0.1146,
+      0.21002
+    ]
+  },
+  "primeira-pessoa-bruma-esquerdo": {
+    "triangulos": 144,
+    "minimo": [
+      -0.39504,
+      -0.45257,
+      -0.44
+    ],
+    "maximo": [
+      0.03244,
+      -0.1178,
+      0.18783
+    ]
+  },
+  "soldado-aurora-comandante": {
+    "triangulos": 1876,
+    "minimo": [
+      -0.38761,
+      0.0,
+      -0.6075
+    ],
+    "maximo": [
+      0.38761,
+      1.85,
+      0.385
+    ]
+  },
+  "soldado-aurora-comandante-tronco": {
+    "triangulos": 1220,
+    "minimo": [
+      -0.25,
+      0.78,
+      -0.235
+    ],
+    "maximo": [
+      0.32,
+      1.85,
+      0.385
+    ]
+  },
+  "soldado-aurora-comandante-perna-esquerda": {
+    "triangulos": 228,
+    "minimo": [
+      -0.235,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      -0.025,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-aurora-comandante-perna-direita": {
+    "triangulos": 228,
+    "minimo": [
+      0.025,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      0.235,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-aurora-comandante-braco-esquerdo": {
+    "triangulos": 100,
+    "minimo": [
+      -0.38761,
+      1.00526,
+      -0.6075
+    ],
+    "maximo": [
+      0.1025,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-aurora-comandante-braco-direito": {
+    "triangulos": 100,
+    "minimo": [
+      0.0525,
+      1.00121,
+      -0.3375
+    ],
+    "maximo": [
+      0.38761,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-aurora-engenheiro": {
+    "triangulos": 1876,
+    "minimo": [
+      -0.38761,
+      0.0,
+      -0.6075
+    ],
+    "maximo": [
+      0.38761,
+      1.85,
+      0.317
+    ]
+  },
+  "soldado-aurora-engenheiro-tronco": {
+    "triangulos": 1220,
+    "minimo": [
+      -0.36,
+      0.78,
+      -0.235
+    ],
+    "maximo": [
+      0.25,
+      1.85,
+      0.317
+    ]
+  },
+  "soldado-aurora-engenheiro-perna-esquerda": {
+    "triangulos": 228,
+    "minimo": [
+      -0.235,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      -0.025,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-aurora-engenheiro-perna-direita": {
+    "triangulos": 228,
+    "minimo": [
+      0.025,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      0.235,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-aurora-engenheiro-braco-esquerdo": {
+    "triangulos": 100,
+    "minimo": [
+      -0.38761,
+      1.00526,
+      -0.6075
+    ],
+    "maximo": [
+      0.1025,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-aurora-engenheiro-braco-direito": {
+    "triangulos": 100,
+    "minimo": [
+      0.0525,
+      1.00121,
+      -0.3375
+    ],
+    "maximo": [
+      0.38761,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-aurora-fuzileiro": {
+    "triangulos": 1804,
+    "minimo": [
+      -0.38761,
+      0.0,
+      -0.6075
+    ],
+    "maximo": [
+      0.38761,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-aurora-fuzileiro-tronco": {
+    "triangulos": 1148,
+    "minimo": [
+      -0.25,
+      0.78,
+      -0.235
+    ],
+    "maximo": [
+      0.34,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-aurora-fuzileiro-perna-esquerda": {
+    "triangulos": 228,
+    "minimo": [
+      -0.235,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      -0.025,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-aurora-fuzileiro-perna-direita": {
+    "triangulos": 228,
+    "minimo": [
+      0.025,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      0.235,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-aurora-fuzileiro-braco-esquerdo": {
+    "triangulos": 100,
+    "minimo": [
+      -0.38761,
+      1.00526,
+      -0.6075
+    ],
+    "maximo": [
+      0.1025,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-aurora-fuzileiro-braco-direito": {
+    "triangulos": 100,
+    "minimo": [
+      0.0525,
+      1.00121,
+      -0.3375
+    ],
+    "maximo": [
+      0.38761,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-aurora-medico": {
+    "triangulos": 1936,
+    "minimo": [
+      -0.38761,
+      0.0,
+      -0.6075
+    ],
+    "maximo": [
+      0.38761,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-aurora-medico-tronco": {
+    "triangulos": 1280,
+    "minimo": [
+      -0.25,
+      0.78,
+      -0.235
+    ],
+    "maximo": [
+      0.36,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-aurora-medico-perna-esquerda": {
+    "triangulos": 228,
+    "minimo": [
+      -0.235,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      -0.025,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-aurora-medico-perna-direita": {
+    "triangulos": 228,
+    "minimo": [
+      0.025,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      0.235,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-aurora-medico-braco-esquerdo": {
+    "triangulos": 100,
+    "minimo": [
+      -0.38761,
+      1.00526,
+      -0.6075
+    ],
+    "maximo": [
+      0.1025,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-aurora-medico-braco-direito": {
+    "triangulos": 100,
+    "minimo": [
+      0.0525,
+      1.00121,
+      -0.3375
+    ],
+    "maximo": [
+      0.38761,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-aurora-suporte": {
+    "triangulos": 1936,
+    "minimo": [
+      -0.38761,
+      0.0,
+      -0.6075
+    ],
+    "maximo": [
+      0.38761,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-aurora-suporte-tronco": {
+    "triangulos": 1280,
+    "minimo": [
+      -0.35,
+      0.78,
+      -0.235
+    ],
+    "maximo": [
+      0.35,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-aurora-suporte-perna-esquerda": {
+    "triangulos": 228,
+    "minimo": [
+      -0.235,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      -0.025,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-aurora-suporte-perna-direita": {
+    "triangulos": 228,
+    "minimo": [
+      0.025,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      0.235,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-aurora-suporte-braco-esquerdo": {
+    "triangulos": 100,
+    "minimo": [
+      -0.38761,
+      1.00526,
+      -0.6075
+    ],
+    "maximo": [
+      0.1025,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-aurora-suporte-braco-direito": {
+    "triangulos": 100,
+    "minimo": [
+      0.0525,
+      1.00121,
+      -0.3375
+    ],
+    "maximo": [
+      0.38761,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-bruma-comandante": {
+    "triangulos": 1876,
+    "minimo": [
+      -0.38761,
+      0.0,
+      -0.6075
+    ],
+    "maximo": [
+      0.38761,
+      1.85,
+      0.385
+    ]
+  },
+  "soldado-bruma-comandante-tronco": {
+    "triangulos": 1220,
+    "minimo": [
+      -0.25,
+      0.78,
+      -0.235
+    ],
+    "maximo": [
+      0.32,
+      1.85,
+      0.385
+    ]
+  },
+  "soldado-bruma-comandante-perna-esquerda": {
+    "triangulos": 228,
+    "minimo": [
+      -0.235,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      -0.025,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-bruma-comandante-perna-direita": {
+    "triangulos": 228,
+    "minimo": [
+      0.025,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      0.235,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-bruma-comandante-braco-esquerdo": {
+    "triangulos": 100,
+    "minimo": [
+      -0.38761,
+      1.00526,
+      -0.6075
+    ],
+    "maximo": [
+      0.1025,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-bruma-comandante-braco-direito": {
+    "triangulos": 100,
+    "minimo": [
+      0.0525,
+      1.00121,
+      -0.3375
+    ],
+    "maximo": [
+      0.38761,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-bruma-engenheiro": {
+    "triangulos": 1876,
+    "minimo": [
+      -0.38761,
+      0.0,
+      -0.6075
+    ],
+    "maximo": [
+      0.38761,
+      1.85,
+      0.317
+    ]
+  },
+  "soldado-bruma-engenheiro-tronco": {
+    "triangulos": 1220,
+    "minimo": [
+      -0.36,
+      0.78,
+      -0.235
+    ],
+    "maximo": [
+      0.25,
+      1.85,
+      0.317
+    ]
+  },
+  "soldado-bruma-engenheiro-perna-esquerda": {
+    "triangulos": 228,
+    "minimo": [
+      -0.235,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      -0.025,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-bruma-engenheiro-perna-direita": {
+    "triangulos": 228,
+    "minimo": [
+      0.025,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      0.235,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-bruma-engenheiro-braco-esquerdo": {
+    "triangulos": 100,
+    "minimo": [
+      -0.38761,
+      1.00526,
+      -0.6075
+    ],
+    "maximo": [
+      0.1025,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-bruma-engenheiro-braco-direito": {
+    "triangulos": 100,
+    "minimo": [
+      0.0525,
+      1.00121,
+      -0.3375
+    ],
+    "maximo": [
+      0.38761,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-bruma-fuzileiro": {
+    "triangulos": 1804,
+    "minimo": [
+      -0.38761,
+      0.0,
+      -0.6075
+    ],
+    "maximo": [
+      0.38761,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-bruma-fuzileiro-tronco": {
+    "triangulos": 1148,
+    "minimo": [
+      -0.25,
+      0.78,
+      -0.235
+    ],
+    "maximo": [
+      0.34,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-bruma-fuzileiro-perna-esquerda": {
+    "triangulos": 228,
+    "minimo": [
+      -0.235,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      -0.025,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-bruma-fuzileiro-perna-direita": {
+    "triangulos": 228,
+    "minimo": [
+      0.025,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      0.235,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-bruma-fuzileiro-braco-esquerdo": {
+    "triangulos": 100,
+    "minimo": [
+      -0.38761,
+      1.00526,
+      -0.6075
+    ],
+    "maximo": [
+      0.1025,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-bruma-fuzileiro-braco-direito": {
+    "triangulos": 100,
+    "minimo": [
+      0.0525,
+      1.00121,
+      -0.3375
+    ],
+    "maximo": [
+      0.38761,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-bruma-medico": {
+    "triangulos": 1936,
+    "minimo": [
+      -0.38761,
+      0.0,
+      -0.6075
+    ],
+    "maximo": [
+      0.38761,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-bruma-medico-tronco": {
+    "triangulos": 1280,
+    "minimo": [
+      -0.25,
+      0.78,
+      -0.235
+    ],
+    "maximo": [
+      0.36,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-bruma-medico-perna-esquerda": {
+    "triangulos": 228,
+    "minimo": [
+      -0.235,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      -0.025,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-bruma-medico-perna-direita": {
+    "triangulos": 228,
+    "minimo": [
+      0.025,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      0.235,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-bruma-medico-braco-esquerdo": {
+    "triangulos": 100,
+    "minimo": [
+      -0.38761,
+      1.00526,
+      -0.6075
+    ],
+    "maximo": [
+      0.1025,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-bruma-medico-braco-direito": {
+    "triangulos": 100,
+    "minimo": [
+      0.0525,
+      1.00121,
+      -0.3375
+    ],
+    "maximo": [
+      0.38761,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-bruma-suporte": {
+    "triangulos": 1936,
+    "minimo": [
+      -0.38761,
+      0.0,
+      -0.6075
+    ],
+    "maximo": [
+      0.38761,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-bruma-suporte-tronco": {
+    "triangulos": 1280,
+    "minimo": [
+      -0.35,
+      0.78,
+      -0.235
+    ],
+    "maximo": [
+      0.35,
+      1.85,
+      0.29
+    ]
+  },
+  "soldado-bruma-suporte-perna-esquerda": {
+    "triangulos": 228,
+    "minimo": [
+      -0.235,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      -0.025,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-bruma-suporte-perna-direita": {
+    "triangulos": 228,
+    "minimo": [
+      0.025,
+      0.0,
+      -0.1975
+    ],
+    "maximo": [
+      0.235,
+      0.87,
+      0.10462
+    ]
+  },
+  "soldado-bruma-suporte-braco-esquerdo": {
+    "triangulos": 100,
+    "minimo": [
+      -0.38761,
+      1.00526,
+      -0.6075
+    ],
+    "maximo": [
+      0.1025,
+      1.44749,
+      0.10299
+    ]
+  },
+  "soldado-bruma-suporte-braco-direito": {
+    "triangulos": 100,
+    "minimo": [
+      0.0525,
+      1.00121,
+      -0.3375
+    ],
+    "maximo": [
+      0.38761,
+      1.44749,
+      0.10299
+    ]
+  }
+}

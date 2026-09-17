@@ -16,6 +16,9 @@ CAMINHO_ATLAS = PASTA / "atlas-frio.png"
 CAMINHO_MATERIAIS = PASTA / "materiais-frio.json"
 LADO_ATLAS = 256
 
+if bpy.context.scene.name in ("Soldados de Rimefall", "Revisão dos soldados"):
+    raise RuntimeError("Abra a cena do mapa antes de aplicar o atlas; soldados usam materiais próprios.")
+
 
 def criar_atlas():
     """Cria uma atlas fria em quatro faixas de superfície."""
@@ -122,8 +125,19 @@ def aplicar_uvs_e_materiais(materiais):
                 u = (vertice.x * 0.08 + vertice.z * 0.03 + deslocamento) % 1.0
                 v = (base_faixa + 0.08 + ((vertice.y * 0.05) % 0.84)) / 4.0
                 uv.data[indice_loop].uv = (u, v)
-        malha.materials.clear()
-        malha.materials.append(materiais[chave])
+        # Uniformes e insígnias têm materiais próprios por exército. O atlas
+        # cobre o cenário; preservar esses materiais mantém a identificação
+        # visual das tropas Aurora e Bruma na cena editável.
+        colecoes = [colecao.name.lower() for colecao in objeto.users_collection]
+        eh_soldado = any(nome.startswith("soldado-aurora") or nome.startswith("soldado-bruma")
+                         for nome in colecoes)
+        if not eh_soldado:
+            malha.materials.clear()
+            malha.materials.append(materiais[chave])
+        elif any(nome.startswith("soldado-aurora") for nome in colecoes):
+            chave = "uniforme-aurora"
+        else:
+            chave = "uniforme-bruma"
         objeto["pipeline-rimefall"] = "uv-atlas-frio-v1"
         objeto["material-superficie"] = chave
         objeto["origem-colisao"] = "cena-guerra-blend"

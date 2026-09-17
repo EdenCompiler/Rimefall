@@ -93,6 +93,12 @@ Só uma arma pode ser carregada. Trocar deixa a anterior no chão; a munição j
 
 As lunetas ampliam a cena sem remover neve, neblina ou obstáculos. Impactos altos recebem multiplicador de dano; não há confirmação visual de acerto, barra de vida inimiga ou indicador de posição.
 
+A arma e o campo de visão entram na mira juntos ao segurar o botão direito:
+0,30 s para levantar a arma e 0,22 s para baixá-la, com aceleração e
+desaceleração suaves. Soltar e pressionar novamente inverte a transição em
+andamento. Recarregar baixa a mira; pausar conserva a pose. A demo e a guerra
+usam o mesmo progresso visual, independente das regras da simulação.
+
 A recarga insere cartuchos um a um, exceto na submetralhadora, que troca o carregador. Disparar pode interromper a recarga com a munição já disponível; um cartucho ainda em animação não entra no inventário. Ferrolhos, culatras, telha, carregador, braços, cartuchos e movimento de saque são animados separadamente. Movimentar-se, correr e respirar afeta a apresentação da arma.
 
 ## Conhecimento e equipamento experimental
@@ -138,6 +144,25 @@ O mapa principal da guerra mede **1 km²**. Ele liga os QGs por uma frente cont�
 
 Os cinco setores — Passagem do Rio, Aldeia de Gelo, Linha das Trincheiras, Pátio Industrial e Colina do Farol — formam uma frente única. A presença superior captura a zona; contestação interrompe o progresso e a equipe adversária pode recuperar o setor. A partida dura até 60 minutos, até um quartel-general ser destruído ou até a reserva de reforços acabar.
 
+Os dez soldados de guerra agora usam modelos completos montados no Blender MCP: cabeça protegida, capacete, gola, mochila, alças, emblema e equipamento específico de fuzileiro, médico, suporte, engenheiro e comandante. Aurora e Bruma têm uniformes e insígnias próprios. As peças entram nas malhas articuladas exportadas e também são usadas para representar corpos recuperáveis na Defesa do posto.
+
+A fonte dos personagens fica em `modelos/soldados.blend`. Cada soldado tem 1,85 m
+e entre 1.804 e 1.936 triângulos. Braços e pernas são peças separadas para a
+animação procedural; a malha completa usada à distância é exportada das mesmas
+peças, com os pés na mesma origem. As mangas e luvas de primeira pessoa seguem
+o uniforme do exército na guerra e o uniforme Aurora no tutorial. Os corpos
+recuperáveis usam o fuzileiro Aurora deitado. Não há animação esquelética nesta
+versão; o runtime movimenta as articulações rígidas.
+
+Para reconstruir os personagens em uma instância isolada do Blender MCP,
+execute `runpy.run_path` primeiro sobre `modelos/criar-detalhes-soldados.py` e
+depois sobre `modelos/exportar-articulacoes.py`, passando os caminhos absolutos.
+O primeiro script abre a cena própria dos soldados; o segundo exporta as 64
+malhas e verifica escala e origem. O arquivo `modelos/inventario-soldados.json`
+registra limites e triângulos de cada malha. `modelos/revisar-soldados.py` gera
+pranchas de revisão sem deslocar a geometria original. O atlas do mapa preserva
+os materiais dos soldados e não deve ser aplicado à cena dos personagens.
+
 Cada setor possui um **ponto forte** sinalizado pela cobertura local. Permanecer dentro dele vale por dois soldados na disputa, então uma equipe menor consegue segurar uma posição preparada. Tiros que passam perto acumulam **supressão**: a mira oscila, a resposta dos bots fica menos precisa e a pressão decai gradualmente quando o fogo cessa.
 
 Fuzileiros, médicos, suporte, engenheiros e comandantes têm kits básicos próprios. O médico estabiliza e reanima uma vez um soldado incapacitado durante uma janela de 45 segundos. Mortes confirmadas consomem a reserva compartilhada e entram na fila do ponto de reunião. Caminhões transportam passageiros, munição e reforços; morteiros exigem operador e observador.
@@ -178,8 +203,6 @@ Também funciona com `sbcl --script executar.lisp --validar`. São necessários 
 
 O roteiro prepara situações e usa as mesmas ações de jogo: exploração, coleta, tiro, recarga, descobertas, morte, notas, mapa, segundo soldado, rajada, chamador, gravação, continuação e uso das quatro armas adicionais. Grava capturas reais e usa diretórios de dados isolados dentro de `validacao/`. É um ensaio reproduzível, não uma partida inteira controlada por uma pessoa.
 
-## Organização
-
 ## Pipeline de arte do mapa
 
 `modelos/guerra.blend` é a fonte única da frente de combate. O pipeline
@@ -206,6 +229,8 @@ O script é idempotente: pode ser executado novamente depois de editar a
 geometria, e sempre sobrescreve a atlas e os metadados com o mesmo resultado
 determinístico.
 
+## Organização
+
 | Arquivo | Responsabilidade |
 |---|---|
 | `notas-de-campo.lisp` | Catálogo, evidências e validação do preparo |
@@ -225,6 +250,9 @@ determinístico.
 | `mapas/guerra.dat` | Definição dos setores, QGs, rio, floresta e caches da guerra |
 | `modelos/gerar-modelos.py` | Construção e exportação executadas pelo Blender MCP |
 | `modelos/gerar-mapa-guerra.py` | Construção e exportação do mapa principal pelo Blender MCP |
+| `modelos/criar-detalhes-soldados.py` | Reconstrução dos dez soldados e quatro braços de primeira pessoa |
+| `modelos/exportar-articulacoes.py` | Exportação completa/articulada e validação de escala |
+| `modelos/soldados.blend` | Cena editável dos soldados, separada do mapa |
 | `modelos/aplicar-pipeline.py` | UVs, atlas fria, materiais e metadados da cena |
 | `modelos/atlas-frio.png` | Atlas procedural de superfícies frias (256 × 256) |
 | `modelos/materiais-frio.json` | Metadados versionados de materiais e faixas UV |

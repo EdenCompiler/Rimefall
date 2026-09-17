@@ -16,7 +16,8 @@
 - A guerra inclui pontos fortes com peso de presença 2× e supressão por rajadas próximas; a pressão altera a precisão dos bots e decai sem fogo contínuo.
 - HUD de orientação validado em janela virtual: some após quatro segundos de combate, mantendo somente o mundo e a arma; `Tab` reabre ou oculta o painel.
 - Interface de comando revisada com briefing de missão, paleta carvão/oliva/bronze, botões com foco visível e cartões de situação para os cinco setores, preservando os atalhos existentes.
-- Pipeline de arte aplicado pelo Blender MCP em 928 objetos: atlas procedural 256 × 256, UVMap determinístico, materiais por superfície e propriedades de origem gravadas na cena.
+- Pipeline de arte do mapa aplicado pelo Blender MCP em 928 objetos: atlas procedural 256 × 256, UVMap determinístico, materiais por superfície e propriedades de origem gravadas na cena.
+- Soldados reconstruídos na cena própria `modelos/soldados.blend`: dez variantes, altura de 1,85 m, entre 1.804 e 1.936 triângulos, equipamento por função, quatro braços de primeira pessoa e materiais distintos para Aurora e Bruma.
 - Metadados conferidos em `modelos/materiais-frio.json`; a atlas foi copiada para a distribuição junto das malhas, preservando o fallback de cor por vértice do runtime.
 
 ## Cobertura das regras
@@ -54,6 +55,54 @@ O executável final mediu **28,3 quadros/s em 1280 × 720**, com **270 quadros e
 Trata-se de renderização por software em Xvfb, incluindo capturas e telas de interface. A meta de 60 quadros/s não foi atingida nesse ensaio; não foi medido o desempenho desta versão em uma GPU dedicada.
 
 ## Evidências
+
+### Revisão dos soldados — 17 de setembro
+
+O exportador validou 64 malhas com coordenadas finitas, pés em Y=0, largura
+inferior a 0,90 m e equivalência entre a malha completa e suas cinco partes.
+Foram corrigidas cabeças desproporcionais do modelo anterior, normais dos
+perfis, pivôs e a elevação adicional dos soldados distantes.
+
+O roteiro `validacao/verificar-soldados.lisp` concluiu quatro capturas no
+renderizador LWLGL em X11 virtual, 1280 × 720 e llvmpipe: tropas articuladas,
+as mesmas tropas usando a malha completa, corpo após morte/substituição no
+tutorial e braços em recarga. O processo usa diretórios temporários para dados
+e preferências, saída silenciosa e simulação congelada para inspeção visual.
+Essas capturas curtas não constituem uma medição de desempenho de batalha.
+A regressão do núcleo permanece em **271 verificações aprovadas**.
+
+- [Prancha Aurora](validacao/soldados-aurora.png) e [prancha Bruma](validacao/soldados-bruma.png)
+- [Tropas no jogo](validacao/soldados-guerra.png) e [malha completa](validacao/soldados-distante.png)
+- [Corpo na demo](validacao/soldados-demo.png) e [braços em recarga](validacao/soldados-recarga.png)
+- [Inventário dos soldados](modelos/inventario-soldados.json)
+
+```bash
+env -u WAYLAND_DISPLAY LWLGL_GLFW_PLATFORM=x11 ALSOFT_DRIVERS=null \
+  xvfb-run -a -s '-screen 0 1280x720x24' \
+  sbcl --script validacao/verificar-soldados.lisp
+```
+
+### Transição de mira
+
+`sbcl --script validacao/verificar-mira.lisp` verifica entrada/saída em
+30, 60 e 144 Hz, reversão parcial, pausa, bloqueio durante recarga e isolamento
+entre o personagem do tutorial e o da guerra. A posição da arma e o zoom usam
+o mesmo fator. Os 271 testes do núcleo continuam aprovados.
+
+O roteiro gráfico usa X11 virtual, áudio desligado e dados temporários. Ele
+pressiona e solta a intenção de mira, volta a mirar e inicia uma recarga nos
+dois modos. O passo da animação é fixado em 1/60 s apenas para tornar as
+capturas comparáveis; as sequências não medem desempenho de batalha.
+
+```bash
+env -u WAYLAND_DISPLAY LWLGL_GLFW_PLATFORM=x11 ALSOFT_DRIVERS=null \
+  xvfb-run -a -s '-screen 0 1280x720x24' \
+  sbcl --script validacao/verificar-mira.lisp --grafico
+```
+
+[Animação na guerra](validacao/mira-guerra.gif) · [Animação na demo](validacao/mira-demo.gif)
+
+### Ensaios anteriores
 
 - [Testes do núcleo](validacao/testes.txt) e [compilação final](validacao/compilacao.txt)
 - [Execução do binário](validacao/execucao-compilada.txt)

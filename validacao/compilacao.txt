@@ -1,7 +1,7 @@
 271 verificações concluídas sem falhas.
 Gravando executável em /home/bruno/projetos/lisp_fps/distribuicao/rimefall
 compressed 32768 bytes into 726 at level 9
-compressed 34045952 bytes into 5309251 at level 9
-compressed 11239424 bytes into 4710439 at level 9
-compressed 1343488 bytes into 323702 at level 9
-compressed 16482304 bytes into 3487257 at level 9
+compressed 34013184 bytes into 5283186 at level 9
+compressed 11239424 bytes into 4712372 at level 9
+compressed 1343488 bytes into 323684 at level 9
+compressed 16482304 bytes into 3487481 at level 9
