@@ -1,5 +1,5 @@
 Rimefall: llvmpipe (LLVM 19.1.7, 256 bits) / 4.5 (Core Profile) Mesa 25.0.7-2+deb13u1
-Medição real: 49.6 quadros/s; 3750 quadros; 75.65 s.
+Medição real: 28.3 quadros/s; 270 quadros; 9.54 s.
 Seis armas validadas, incluindo lunetas 2x/4x e recarga do carregador.
 Expansão validada: isca temporizada, bipé, mapa, chamado, rajada, salvamento e continuação.
 Roteiro visual concluído: escopeta, distração, morte, diário e segundo soldado.

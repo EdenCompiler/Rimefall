@@ -4,6 +4,8 @@ Sobrevivência tática em primeira pessoa durante um cerco ártico. O modo **Def
 
 Implementado em **Common Lisp/SBCL**, exclusivamente com **LWLGL** para OpenGL 3.3, entrada e OpenAL. Os modelos são autorais, construídos e exportados pelo **Blender MCP**. O peso das armas, a mira, as recargas deliberadas e a vulnerabilidade seguem a referência de sensação de Hell Let Loose. A guerra usa uma frente móvel e monstros atraídos pelo som; a conexão direta usa lockstep determinístico com relé e hashes.
 
+A interface segue a linguagem de um centro de operações: briefing de missão à esquerda, lista de destacamentos à direita, paleta carvão/verde-oliva/bronze e cartões de situação para a frente. O visual é inspirado em jogos de guerra de grande escala, mantendo textos e símbolos próprios de Rimefall.
+
 ## Executar
 
 O repositório contém código-fonte, modelos e documentação. Na pasta do projeto, execute pelo código-fonte:
@@ -27,7 +29,13 @@ Para executar a simulação de guerra offline pelo terminal:
 sbcl --script executar.lisp --guerra
 ```
 
-O botão **INICIAR GUERRA / 8 CONTRA 8** abre o painel de batalha na janela. WASD move o soldado local; 1, 2 e 3 enviam ordens de ataque, defesa e reunião. Esc retorna ao tutorial. O painel usa o mesmo passo fixo, setores, bots, reforços e invasões do núcleo.
+Para abrir diretamente a guerra jogável, sem passar pelo menu:
+
+```bash
+sbcl --script executar.lisp --guerra-grafica
+```
+
+O botão **INICIAR GUERRA / 8 CONTRA 8** abre a batalha na janela; o atalho **G** faz a mesma transição caso o ponteiro ainda não esteja dentro da janela. A Aurora nasce no ponto de reunião avançado, em **X -6 / Z -55**, dentro da estrada sul do mapa, voltada para a frente; a Bruma usa o ponto oposto, em **X -6 / Z 55**. O HUD de orientação desaparece após quatro segundos para liberar a visão do mapa; **Tab** mostra ou oculta o HUD novamente. WASD move o soldado local; 1, 2 e 3 enviam ordens de ataque, defesa e reunião. Esc pausa a batalha e Q retorna ao menu. O painel usa o mesmo passo fixo, setores, bots, reforços e invasões do núcleo.
 
 **Dependências nativas:** Linux x86-64, driver com OpenGL 3.3, GLFW 3 e OpenAL. Para executar ou compilar o código-fonte: SBCL, ASDF, Quicklisp e LWLGL instalada, por exemplo em `~/quicklisp/local-projects/LWLGL`. A inicialização procura o Quicklisp em `~/quicklisp/setup.lisp`. A biblioteca usada no desenvolvimento foi a LWLGL 2.2.0 local.
 
@@ -54,6 +62,8 @@ A janela inicia em 1280 × 720. No menu, **Nova sessão** começa outro cerco e 
 | Selecionar célula do mapa | Clique ou setas, entre vidas |
 
 Os atalhos de teclado do combate são configuráveis. Se uma nova tecla já estiver em uso, os dois comandos trocam de tecla. Esc, Tab e Enter ficam reservados à interface. Mirar e disparar continuam nos botões direito e esquerdo.
+
+Na guerra, **4** e **5** percorrem o arsenal compartilhado (incluindo os fuzis de precisão), **Esc** pausa a simulação e **Q** retorna ao menu. A troca conserva a quantidade total de munição disponível.
 
 **Configurações** também permite ajustar sensibilidade, campo de visão, resolução, tela cheia, VSync, partículas de neve e volumes geral, de efeitos e ambiente. Tela cheia é aplicada na próxima abertura; os demais ajustes são aplicados durante a execução. O volume não altera a audição das criaturas.
 
@@ -128,6 +138,8 @@ O mapa principal da guerra mede **1 km²**. Ele liga os QGs por uma frente cont�
 
 Os cinco setores — Passagem do Rio, Aldeia de Gelo, Linha das Trincheiras, Pátio Industrial e Colina do Farol — formam uma frente única. A presença superior captura a zona; contestação interrompe o progresso e a equipe adversária pode recuperar o setor. A partida dura até 60 minutos, até um quartel-general ser destruído ou até a reserva de reforços acabar.
 
+Cada setor possui um **ponto forte** sinalizado pela cobertura local. Permanecer dentro dele vale por dois soldados na disputa, então uma equipe menor consegue segurar uma posição preparada. Tiros que passam perto acumulam **supressão**: a mira oscila, a resposta dos bots fica menos precisa e a pressão decai gradualmente quando o fogo cessa.
+
 Fuzileiros, médicos, suporte, engenheiros e comandantes têm kits básicos próprios. O médico estabiliza e reanima uma vez um soldado incapacitado durante uma janela de 45 segundos. Mortes confirmadas consomem a reserva compartilhada e entram na fila do ponto de reunião. Caminhões transportam passageiros, munição e reforços; morteiros exigem operador e observador.
 
 Ruídos acumulam pressão sonora. Depois do limite e de um aviso, uma grande invasão ataca a região mais ruidosa, podendo atingir setores, comboios e quartéis. Monstros podem destruir qualquer QG e derrotar o exército. O relé de conexão direta apenas ordena comandos e compara hashes; cada cliente executa a simulação determinística.
@@ -168,6 +180,32 @@ O roteiro prepara situações e usa as mesmas ações de jogo: exploração, col
 
 ## Organização
 
+## Pipeline de arte do mapa
+
+`modelos/guerra.blend` é a fonte única da frente de combate. O pipeline
+`modelos/aplicar-pipeline.py` é executado no Blender MCP e faz quatro passos
+repetíveis: cria a atlas fria de 256 × 256, gera UVs determinísticas para cada
+malha, associa o material pela superfície (neve, gelo, madeira, metal,
+concreto ou terra) e grava propriedades de origem usadas na revisão. A cena
+continua sendo a mesma fonte para a exportação de `guerra.malha` e para
+`colisoes-guerra.lisp`, evitando que a colisão se afaste do visual.
+
+O resultado fica em `modelos/atlas-frio.png` e
+`modelos/materiais-frio.json`. A malha carregada pelo runtime mantém o formato
+de cor por vértice como fallback leve da LWLGL; a atlas e os UVs já estão
+preparados para o carregador de texturas da biblioteca quando o caminho
+texturizado for habilitado. Para reaplicar o acabamento em uma instância
+isolada do Blender MCP:
+
+```text
+exec(compile(open('modelos/aplicar-pipeline.py', encoding='utf-8').read(),
+             'aplicar-pipeline.py', 'exec'))
+```
+
+O script é idempotente: pode ser executado novamente depois de editar a
+geometria, e sempre sobrescreve a atlas e os metadados com o mesmo resultado
+determinístico.
+
 | Arquivo | Responsabilidade |
 |---|---|
 | `notas-de-campo.lisp` | Catálogo, evidências e validação do preparo |
@@ -187,6 +225,9 @@ O roteiro prepara situações e usa as mesmas ações de jogo: exploração, col
 | `mapas/guerra.dat` | Definição dos setores, QGs, rio, floresta e caches da guerra |
 | `modelos/gerar-modelos.py` | Construção e exportação executadas pelo Blender MCP |
 | `modelos/gerar-mapa-guerra.py` | Construção e exportação do mapa principal pelo Blender MCP |
+| `modelos/aplicar-pipeline.py` | UVs, atlas fria, materiais e metadados da cena |
+| `modelos/atlas-frio.png` | Atlas procedural de superfícies frias (256 × 256) |
+| `modelos/materiais-frio.json` | Metadados versionados de materiais e faixas UV |
 | `modelos/rimefall.blend` | Fonte editável, com coleções independentes |
 | `modelos/guerra.blend` | Fonte editável do mapa de 1 km² da guerra |
 

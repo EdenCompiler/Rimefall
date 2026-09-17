@@ -4,7 +4,8 @@
   (dolist (exercito (guerra-exercitos guerra))
     (push (criar-veiculo-guerra :id (list :caminhao (exercito-id exercito))
                                 :exercito exercito
-                                :x 0.0 :z (quartel-general-z (exercito-quartel-general exercito)))
+                                :x -20.0 :z (if (eq (exercito-id exercito) :aurora) -60.0 60.0)
+                                :destino-x -20.0 :destino-z (if (eq (exercito-id exercito) :aurora) -60.0 60.0))
           (guerra-veiculos guerra))
     (push (criar-morteiro-guerra :id (list :morteiro (exercito-id exercito))
                                  :exercito exercito :x 12.0
@@ -65,10 +66,12 @@
     t))
 
 (defun atualizar-logistica-guerra (guerra intervalo)
+  (unless (and (guerra-ativa-p guerra) (not (guerra-pausada guerra)))
+    (return-from atualizar-logistica-guerra guerra))
   (dolist (veiculo (guerra-veiculos guerra))
     (let ((dist (sqrt (+ (expt (- (veiculo-guerra-destino-x veiculo) (veiculo-guerra-x veiculo)) 2)
                           (expt (- (veiculo-guerra-destino-z veiculo) (veiculo-guerra-z veiculo)) 2)))))
-      (when (> dist .5)
+      (when (and (> dist .5) (veiculo-guerra-motorista veiculo) (plusp (veiculo-guerra-vida veiculo)))
         (incf (veiculo-guerra-x veiculo)
               (* intervalo (/ (- (veiculo-guerra-destino-x veiculo) (veiculo-guerra-x veiculo)) dist)
                  (veiculo-guerra-velocidade veiculo)))
@@ -82,5 +85,5 @@
       (decf (veiculo-guerra-carga veiculo) 0.01)))
   (dolist (morteiro (guerra-morteiros guerra))
     (when (plusp (morteiro-guerra-recarga morteiro))
-      (decf (morteiro-guerra-recarga morteiro) intervalo)))
+      (setf (morteiro-guerra-recarga morteiro) (max 0.0 (- (morteiro-guerra-recarga morteiro) intervalo)))))
   guerra)

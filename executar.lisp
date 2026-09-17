@@ -15,4 +15,5 @@
              (append (when (member "--validar" argumentos :test #'string=)
                        (list :validacao t :quadros-maximos 3780
                              :pasta-capturas (asdf:system-relative-pathname "rimefall" "validacao/") :sincronizar nil))
+                     (when (member "--guerra-grafica" argumentos :test #'string=) (list :guerra t))
                      (when (member "--sem-audio" argumentos :test #'string=) (list :sem-audio t))))))

@@ -1,0 +1,30 @@
+{
+  "versao": 1,
+  "atlas": "atlas-frio.png",
+  "resolucao": [
+    256,
+    256
+  ],
+  "objetos_mapeados": 928,
+  "faixas": {
+    "neve": [
+      0.0,
+      0.25
+    ],
+    "gelo": [
+      0.25,
+      0.5
+    ],
+    "madeira": [
+      0.5,
+      0.75
+    ],
+    "metal_concreto_terra": [
+      0.75,
+      1.0
+    ]
+  },
+  "colisoes": "../colisoes-guerra.lisp",
+  "exportacao_runtime": "guerra.malha",
+  "observacao": "A malha do runtime mantém cor por vértice como fallback LWLGL."
+}

@@ -3,24 +3,31 @@
 (defun botao (identificador titulo x y largura &key selecionado (habilitado t) (altura 48))
   (let ((focado (eq identificador *foco*)))
     (retangulo x y largura altura
-               (cond ((not habilitado) '(.065 .085 .098 .92))
-                     (selecionado '(.16 .21 .22 1)) (focado '(.13 .17 .18 1))
-                     (t '(.075 .11 .13 1))))
+               (cond ((not habilitado) '(.055 .065 .056 .92))
+                     (selecionado *oliva-foco*) (focado '(.18 .22 .16 1))
+                     (t *oliva-menu*)))
+    ;; Filete superior e marcador lateral dão aos botões a leitura de uma
+    ;; tela de alistamento, sem esconder o estado de foco do teclado.
+    (retangulo x y largura 2 (if habilitado *oliva-foco* *apagado*))
     (when (or selecionado focado)
-      (retangulo x y (if selecionado 4 2) altura *destaque*))
+      (retangulo x y (if selecionado 6 3) altura *bronze-menu*))
     (desenhar-texto titulo (+ x 18) (+ y (/ (- altura 14) 2)) 2 (if habilitado *gelo* *apagado*))
     (push (list identificador x y largura altura habilitado) *botoes*)))
 
 (defun cabecalho (sessao subtitulo)
-  (retangulo 0 0 1280 720 '(.025 .043 .055 .86))
-  (retangulo 48 40 5 17 *destaque*)
-  (desenhar-texto "POSTO 07 / CÍRCULO POLAR" 68 44 2 *apagado*)
-  (desenhar-texto "RIMEFALL" 48 86 7 *gelo*)
-  (desenhar-texto subtitulo 48 155 2 *destaque*)
-  (desenhar-texto (format nil "~2,'0D / 04" (sessao-usados sessao)) 1080 82 3 *gelo*)
-  (desenhar-texto "SOLDADOS USADOS" 1040 118 2 *apagado*)
-  (retangulo 48 184 1184 1 '(.25 .32 .34 1))
-  (desenhar-texto "TAB: NAVEGAR   ENTER: CONFIRMAR   H: HISTÓRICO   ESC: SAIR/VOLTAR" 48 681 1.5 *apagado*))
+  (retangulo 0 0 1280 720 *carvao-menu*)
+  (retangulo 0 0 1280 7 *bronze-menu*)
+  (retangulo 42 34 7 57 *bronze-menu*)
+  (desenhar-texto "QUARTEL-GENERAL / POSTO 07" 68 39 1.7 *apagado*)
+  (desenhar-texto "RIMEFALL" 48 88 7 *gelo*)
+  (desenhar-texto "OPERAÇÃO / CÍRCULO POLAR" 52 151 1.8 *bronze-menu*)
+  (desenhar-texto subtitulo 52 178 2.1 *gelo*)
+  (retangulo 48 211 1184 2 '(.24 .29 .23 1))
+  (desenhar-texto (format nil "GUARNIÇÃO / ~2,'0D DE 04" (sessao-usados sessao)) 1003 91 1.5 *gelo*)
+  (desenhar-texto "SITUAÇÃO: FRENTE ATIVA" 1003 120 1.2 *apagado*)
+  (moldura 996 73 237 65 '(.27 .33 .25 1))
+  (desenhar-texto "TAB / NAVEGAR   ENTER / CONFIRMAR   H / ARQUIVO   ESC / VOLTAR"
+                 48 681 1.35 *apagado*))
 
 (defun desenhar-notas (sessao)
   (cabecalho sessao "01 / NOTAS DE CAMPO")
@@ -190,9 +197,15 @@
     (:retomar (unless *gravacao-bloqueada* (setf (sessao-fase sessao) :combate)))
     (:continuar (let ((salva (carregar-sessao))) (when salva (return-from ativar-botao salva))))
     (:guerra
+     (setf *hud-guerra-visivel* nil)
      (setf *guerra-atual* (criar-guerra-offline :jogadores-por-lado 8))
      (criar-logistica-guerra *guerra-atual*)
-     (setf (sessao-fase sessao) :guerra))
+     (setf (sessao-fase sessao) :guerra)
+     ;; Garante que a janela receba teclado e mouse imediatamente após o
+     ;; clique no menu, inclusive em gerenciadores Wayland/X11 híbridos.
+     (when janela
+       (janela:focus-window janela)
+       (janela:set-window-title janela "Rimefall / Guerra / COMBATE")))
     (:configuracoes (setf *configuracoes-abertas* t *foco* :voltar-configuracoes))
     (:voltar-configuracoes (salvar-configuracao) (setf *configuracoes-abertas* nil *remapeando* nil))
     (:mapa (setf *mapa-aberto* t *foco* :fechar-mapa))
@@ -221,10 +234,26 @@
           (*historico-aberto* (setf *historico-aberto* nil))
           ((eq (sessao-fase sessao) :pausa) (unless *gravacao-bloqueada* (setf (sessao-fase sessao) :combate)))
           ((eq (sessao-fase sessao) :combate) (setf (sessao-fase sessao) :pausa *foco* :retomar))
-          ((eq (sessao-fase sessao) :guerra) (setf (sessao-fase sessao) :titulo *guerra-atual* nil *foco* :nova))
+          ((eq (sessao-fase sessao) :guerra) (setf (guerra-pausada *guerra-atual*) (not (guerra-pausada *guerra-atual*))))
           (t (janela:set-window-should-close janela t)))
     (return-from processar-interface sessao))
   (when (processar-edicoes sessao estado janela) (return-from processar-interface sessao))
+  ;; Atalho de segurança: a mesma ação do botão de guerra fica disponível
+  ;; pela tecla G, útil quando o ponteiro inicia fora da janela.
+  (when (and (eq (sessao-fase sessao) :titulo)
+             (entrada:key-pressed-p estado janela:key-g))
+    (return-from processar-interface (ativar-botao sessao :guerra janela)))
+  ;; O primeiro quadro pode ainda não ter reconstruído *botoes*. Testamos a
+  ;; área do botão de guerra diretamente para que um clique imediato nunca
+  ;; seja perdido.
+  (when (and (eq (sessao-fase sessao) :titulo)
+             (entrada:mouse-pressed-p estado janela:mouse-button-left))
+    (multiple-value-bind (x y) (entrada:mouse-position estado)
+      (multiple-value-bind (largura altura) (janela:window-size janela)
+        (setf x (* x (/ 1280 (max largura 1)))
+              y (* y (/ 720 (max altura 1)))))
+      (when (and (<= 840 x 1232) (<= 430 y 478))
+        (return-from processar-interface (ativar-botao sessao :guerra janela)))))
   (when (and (eq (sessao-fase sessao) :combate) (not (entrada:input-focused-p estado)))
     (setf (sessao-fase sessao) :pausa *foco* :retomar))
   (when (eq (sessao-fase sessao) :combate)
@@ -244,20 +273,7 @@
       (when (acao-pressionada-p estado :apoiar) (apoiar-arma sessao)))
     (return-from processar-interface sessao))
   (when (eq (sessao-fase sessao) :guerra)
-    (let ((jogador (first (guerra-jogadores *guerra-atual*)))
-          (frente 0.0))
-      (when (entrada:key-down-p estado janela:key-w) (setf frente 1.0))
-      (when (entrada:key-down-p estado janela:key-s) (decf frente))
-      (when (plusp (abs frente))
-        (incf (jogador-guerra-z jogador) (* frente .2))
-        (registrar-ruido-guerra *guerra-atual* (jogador-guerra-x jogador)
-                                (jogador-guerra-z jogador) 12.0 :passos)))
-    (when (entrada:key-pressed-p estado janela:key-1)
-      (enviar-ordem-guerra *guerra-atual* (first (guerra-jogadores *guerra-atual*)) :atacar))
-    (when (entrada:key-pressed-p estado janela:key-2)
-      (enviar-ordem-guerra *guerra-atual* (first (guerra-jogadores *guerra-atual*)) :defender))
-    (when (entrada:key-pressed-p estado janela:key-3)
-      (enviar-ordem-guerra *guerra-atual* (first (guerra-jogadores *guerra-atual*)) :reunir))
+    (processar-entrada-guerra sessao estado janela)
     (return-from processar-interface sessao))
   (when (eq (sessao-fase sessao) :notas)
     (multiple-value-bind (horizontal vertical) (entrada:scroll-delta estado)
@@ -314,18 +330,39 @@
   (entrada:key-down-p estado (cdr (assoc acao (getf *configuracao* :atalhos)))))
 (defun acao-pressionada-p (estado acao)
   (entrada:key-pressed-p estado (cdr (assoc acao (getf *configuracao* :atalhos)))))
+(defun tecla-guerra-mantida-p (estado janela &rest teclas)
+  "Consulta o estado mantido também diretamente no GLFW.
+
+O callback da LWLGL é a fonte principal, mas a consulta direta evita perder
+teclas quando a janela acabou de receber foco durante a transição do menu."
+  (some (lambda (tecla)
+          (or (entrada:key-down-p estado tecla)
+              (= (janela:get-key janela tecla) janela:press)))
+        teclas))
 (defun desenhar-titulo (sessao)
-  (cabecalho sessao "DEMO / A MEMÓRIA SOBREVIVE AO FRIO")
-  (paragrafo "Quatro soldados. Três ondas. Um posto congelado. As criaturas caçam pelo som. O que cada soldado descobre passa ao esquadrão quando ele morre."
-             64 238 55 *gelo* 2 5)
-  (desenhar-texto "POSTO DE TESTES / EXPANSÃO 0.2" 64 475 1.8 *destaque*)
-  (paragrafo "Saia do abrigo para buscar equipamento experimental. Pare, ouça o vento e escolha quando arriscar um disparo." 64 524 57 *apagado* 1.7)
-  (botao :continuar "CONTINUAR" 840 240 392 :habilitado (probe-file (caminho-sessao)))
-  (botao :nova "NOVA SESSÃO" 840 318 392)
-  (paragrafo "Nova sessão substitui o cerco salvo." 848 384 36 *apagado* 1.4 2)
-  (botao :guerra "INICIAR GUERRA / 8 CONTRA 8" 840 440 392)
-  (botao :configuracoes "CONFIGURAÇÕES" 840 520 392)
-  (botao :sair "SAIR" 840 598 392))
+  (cabecalho sessao "CENTRO DE OPERAÇÕES / SELECIONE UMA MISSÃO")
+  ;; Coluna de briefing à esquerda, como um quadro de situação antes do
+  ;; destacamento. O texto permanece curto para a fonte bitmap da demo.
+  (retangulo 48 238 700 350 '(.055 .072 .056 .94))
+  (moldura 48 238 700 350 '(.25 .31 .23 1))
+  (desenhar-texto "BRIEFING DA GUARNIÇÃO" 74 264 1.8 *bronze-menu*)
+  (desenhar-texto "DEFESA DO POSTO" 74 309 2.7 *gelo*)
+  (paragrafo "Quatro soldados. Três ondas. Criaturas cegas caçam pelo som. Cada morte transmite a experiência para a próxima vida."
+             74 358 55 *gelo* 1.8 4)
+  (retangulo 74 458 638 2 '(.25 .31 .23 1))
+  (desenhar-texto "STATUS / POSTO 07 OPERACIONAL" 74 480 1.45 *destaque*)
+  (desenhar-texto "MAPA DE TESTE / NEVE E NEBLINA" 74 510 1.25 *apagado*)
+  (desenhar-texto "SOM: AMEAÇA PRINCIPAL" 74 536 1.25 *apagado*)
+  ;; Lista de missões à direita, com hierarquia de comando e um marcador
+  ;; vertical para a opção atualmente focada.
+  (desenhar-texto "ORDENS DISPONÍVEIS" 840 238 1.8 *bronze-menu*)
+  (botao :continuar "CONTINUAR CERCO" 840 276 392 :habilitado (probe-file (caminho-sessao)))
+  (botao :nova "NOVA DEFESA" 840 347 392)
+  (desenhar-texto "SUBSTITUI O ESTADO SALVO" 858 407 1.15 *apagado*)
+  (botao :guerra "GUERRA / 8 CONTRA 8" 840 430 392)
+  (desenhar-texto "FRENTE MÓVEL / CINCO SETORES" 858 490 1.15 *apagado*)
+  (botao :configuracoes "PREFERÊNCIAS" 840 520 392)
+  (botao :sair "ENCERRAR OPERAÇÃO" 840 591 392))
 
 (defparameter *opcoes-configuracao*
   '((:sensibilidade "Sensibilidade" .0005 .008 .0005)

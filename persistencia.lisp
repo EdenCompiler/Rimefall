@@ -195,7 +195,8 @@
                              (list (jogador-guerra-id jogador) (jogador-guerra-estado jogador)
                                    (jogador-guerra-x jogador) (jogador-guerra-z jogador)
                                    (jogador-guerra-funcao jogador) (jogador-guerra-municao jogador)
-                                   (jogador-guerra-eliminacoes jogador))) (guerra-jogadores guerra))))
+                                   (jogador-guerra-eliminacoes jogador) (jogador-guerra-supressao jogador)))
+                         (guerra-jogadores guerra))))
 
 (defun aplicar-dados-guerra (guerra dados)
   (setf (guerra-fase guerra) (getf dados :fase)
@@ -222,7 +223,8 @@
                           (jogador-guerra-z jogador) (fourth registro)
                           (jogador-guerra-funcao jogador) (fifth registro)
                           (jogador-guerra-municao jogador) (sixth registro)
-                          (jogador-guerra-eliminacoes jogador) (seventh registro)))))
+                          (jogador-guerra-eliminacoes jogador) (seventh registro)
+                          (jogador-guerra-supressao jogador) (or (eighth registro) 0.0)))))
   (conferir-guerra guerra))
 
 (defun gravar-guerra (guerra caminho)

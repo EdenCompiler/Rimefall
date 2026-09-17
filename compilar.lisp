@@ -21,6 +21,7 @@
                (append (when (member "--validar" argumentos :test #'string=)
                          (list :validacao t :quadros-maximos 3780 :sincronizar nil
                                :pasta-capturas (merge-pathnames "validacao/" pasta)))
+                       (when (member "--guerra-grafica" argumentos :test #'string=) (list :guerra t))
                        (when (member "--sem-audio" argumentos :test #'string=) (list :sem-audio t))))))
     (error (condicao)
       (format *error-output* "~&Não foi possível executar Rimefall: ~A~%" condicao)
@@ -29,9 +30,10 @@
 (let* ((pasta (asdf:system-relative-pathname "rimefall" "distribuicao/"))
        (destino (merge-pathnames "rimefall" pasta)))
   (ensure-directories-exist (merge-pathnames "modelos/" pasta))
-  (dolist (origem (directory (merge-pathnames (make-pathname :name :wild :type "malha")
-                                             (asdf:system-relative-pathname "rimefall" "modelos/"))))
-    (uiop:copy-file origem (merge-pathnames (file-namestring origem) (merge-pathnames "modelos/" pasta))))
+  (dolist (extensao '("malha" "png" "json"))
+    (dolist (origem (directory (merge-pathnames (make-pathname :name :wild :type extensao)
+                                               (asdf:system-relative-pathname "rimefall" "modelos/"))))
+      (uiop:copy-file origem (merge-pathnames (file-namestring origem) (merge-pathnames "modelos/" pasta)))))
   (uiop:copy-file (asdf:system-relative-pathname "rimefall" "README.md") (merge-pathnames "README.md" pasta))
   (format t "~&Gravando executável em ~A~%" destino)
   (sb-ext:save-lisp-and-die (namestring destino) :toplevel #'rimefall::iniciar-executavel

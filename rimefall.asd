@@ -3,8 +3,8 @@
   :description "Simulação, tutorial e guerra distribuída de Rimefall."
   :serial t
   :depends-on ("usocket")
-  :components ((:file "notas-de-campo") (:file "campo") (:file "guerra")
-               (:file "invasoes") (:file "logistica") (:file "comunicacao")
+  :components ((:file "notas-de-campo") (:file "campo") (:file "colisoes-guerra") (:file "guerra")
+               (:file "invasoes") (:file "logistica") (:file "combate-guerra") (:file "comunicacao")
                (:file "rede") (:file "persistencia") (:file "rimefall")))
 
 (asdf:defsystem "rimefall"

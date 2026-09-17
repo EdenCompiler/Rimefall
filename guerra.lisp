@@ -6,6 +6,11 @@
 (defparameter *tempo-reforco* 10.0)
 (defparameter *quantidade-reforcos-prototipo* 32)
 (defparameter *funcoes-guerra* '(:fuzileiro :medico :suporte :engenheiro :comandante))
+(defparameter *duracao-recarga-guerra* 1.4)
+;; Limites físicos do mapa exportado pelo Blender (um quilômetro quadrado).
+;; Os pontos de reunião ficam na estrada, alguns metros à frente dos QGs.
+(defparameter *limite-mapa-guerra* 480.0)
+(defparameter *pontos-reuniao-guerra* '(-55.0 55.0))
 
 (defstruct (quartel-general (:constructor criar-quartel-general)
                             (:predicate quartel-general-p))
@@ -16,7 +21,8 @@
   (fila-reforcos nil) (ordem :defender) (mensagens nil))
 (defstruct (setor-guerra (:constructor criar-setor-guerra)
                          (:predicate setor-guerra-p))
-  id nome x z raio (ordem 0) dono (progresso 0.0) (contestacao 0.0))
+  id nome x z raio (ordem 0) dono (progresso 0.0) (contestacao 0.0)
+  (ponto-forte-x 0.0) (ponto-forte-z 0.0))
 (defstruct (esquadrao-guerra (:constructor criar-esquadrao-guerra)
                              (:predicate esquadrao-guerra-p))
   id exercito nome (lider nil) jogadores (ordem :reunir) marcador)
@@ -25,7 +31,13 @@
   id nome exercito esquadrao funcao (bot-p t) (estado :ativo)
   (x 0.0) (z 0.0) (angulo 0.0) (incapacitado-em 0.0)
   (estabilizado-p nil) (reanimacoes 0) (eliminacoes 0)
-  (arma :fuzil) (municao 30) (ultima-ordem nil) (ultima-mensagem ""))
+  (arma :fuzil) (municao 30) (tempo-recarga 0.0) (tempo-arma 0.0)
+  (movimento 0.0) (passada 0.0) (inclinacao 0.0) (mirando nil)
+  (frente 0.0) (lateral 0.0) (correndo nil) (agachado nil) (gatilho nil)
+  (reserva 60) (ferimentos 0) (recuo 0.0) (clarão 0.0) (ferido-ate 0.0)
+  (retorno-em 0.0) (geracao 1) (caminho nil) (destino nil) (pensar-em 0.0) (alvo-id nil)
+  (supressao 0.0)
+  (ultima-ordem nil) (ultima-mensagem ""))
 (defstruct (comando-guerra (:constructor criar-comando-guerra)
                           (:predicate comando-guerra-p))
   quadro jogador tipo dados)
@@ -43,7 +55,7 @@
   exercitos setores esquadroes jogadores veiculos morteiros
   (mensagens nil) (marcadores nil) (sons nil) (pressao-sonora 0.0)
   (invasao nil) (semente 9173) (historico nil) (fila-comandos nil)
-  (modo :offline) vencedor (divergencias nil))
+  (modo :offline) vencedor (divergencias nil) (efeitos nil) (audio nil) (pausada nil))
 (defvar *guerra-atual* nil)
 
 (defparameter *nomes-exercitos*
@@ -53,15 +65,31 @@
   '("Passagem do Rio" "Aldeia de Gelo" "Linha das Trincheiras"
     "Pátio Industrial" "Colina do Farol"))
 
+;; Volumes de colisão principais da malha do Blender. O terreno aberto fica
+;; livre; estes volumes impedem atravessar QGs, galpões, casas e o rio.
+(defparameter *obstaculos-guerra*
+  '((0.0 -500.0 18.0 15.0) (0.0 500.0 18.0 15.0)
+    (-26.0 95.0 14.0 10.0) (25.0 145.0 16.0 11.0) (-18.0 155.0 10.0 8.0)
+    (-24.0 -150.0 6.0 5.0) (-5.0 -110.0 6.0 5.0)
+    (21.0 -145.0 6.0 5.0) (35.0 -95.0 6.0 5.0) (-38.0 -75.0 6.0 5.0)
+    (205.0 0.0 27.0 490.0)))
+
 (defun criar-setores-guerra ()
+  ;; O exportador do Blender converte o eixo Y interno para -Z do jogo.
+  ;; Assim, os marcos do arquivo aparecem em Passagem -240 e Colina +240.
   (loop for nome in *nomes-setores-guerra*
         for indice from 0
         collect (criar-setor-guerra :id indice :nome nome :x 0.0
-                                     :z (- (* indice 120.0) 240.0)
-                                     :raio 82.0 :ordem indice)))
+                                     :z (nth indice '(-240.0 -120.0 0.0 120.0 240.0))
+                                     :raio 32.0 :ordem indice
+                                     :ponto-forte-x (if (evenp indice) -8.0 8.0)
+                                     :ponto-forte-z (nth indice '(-240.0 -120.0 0.0 120.0 240.0))
+                                     :dono (cond ((< indice 2) :aurora) ((> indice 2) :bruma)))))
 
 (defun criar-exercitos-guerra ()
   (loop for (id nome cor) in *nomes-exercitos*
+        ;; Depois da conversão Y=-Z, o QG Aurora fica em -500 e o QG
+        ;; Bruma em +500 no eixo usado pela simulação.
         for z in '(-500.0 500.0)
         collect (criar-exercito :id id :nome nome :cor cor
                                 :quartel-general
@@ -89,27 +117,72 @@
                                               :key #'esquadrao-guerra-id)
                                        (let ((novo (criar-esquadrao-guerra
                                                     :id (+ (* lado 10) esquadrao-id)
-                                                    :exercito exercito
+                                                    :exercito exercito :ordem :atacar
                                                     :nome (format nil "Esquadrão ~D" (1+ esquadrao-id)))))
                                          (push novo (guerra-esquadroes guerra))
                                          novo))
                    for jogador = (criar-jogador-guerra
                                   :id id :nome (format nil "~A ~D" (exercito-nome exercito) (1+ numero))
                                   :exercito exercito :esquadrao esquadrao :funcao funcao
-                                  :x 0.0 :z (if (zerop lado) -470.0 470.0))
+                                  :bot-p (not (and (zerop lado) (zerop numero)))
+                                  :arma (case funcao
+                                          (:suporte :metralhadora)
+                                          (:comandante :pistola)
+                                          (:engenheiro :carabina)
+                                          (:medico :escopeta)
+                                          (otherwise :fuzil))
+                                  ;; Cada exército começa junto ao próprio QG,
+                                  ;; dentro do piso do mapa e alinhado à estrada
+                                  ;; longitudinal. A frente fica adiante, em
+                                  ;; Passagem do Rio, para o avanço acontecer
+                                  ;; durante a partida.
+                                  :x (+ -6.0 (* (mod numero 4) 3.0))
+                                  :z (+ (nth lado *pontos-reuniao-guerra*)
+                                        (* (if (zerop lado) -1.0 1.0)
+                                           (* (floor numero 4) 14.0)))
+                                  ;; Aurora avança para norte (+Z) e Bruma para
+                                  ;; sul (-Z), sempre em direção aos setores.
+                                  :angulo (if (zerop lado) pi 0.0))
                    do (push jogador (guerra-jogadores guerra))
                       (push jogador (esquadrao-guerra-jogadores esquadrao))
                       (when (eq funcao :comandante) (setf (esquadrao-guerra-lider esquadrao) jogador))))
     (setf (guerra-esquadroes guerra) (nreverse (guerra-esquadroes guerra))
           (guerra-jogadores guerra) (nreverse (guerra-jogadores guerra))
           (guerra-fase guerra) :combate)
+    (dolist (jogador (guerra-jogadores guerra)) (equipar-guerra jogador))
     guerra))
 
 (defun guerra-ativa-p (guerra) (eq (guerra-fase guerra) :combate))
 (defun jogador-ativo-p (jogador) (eq (jogador-guerra-estado jogador) :ativo))
+(defun jogador-local-guerra (guerra)
+  "Retorna o soldado humano do protótipo; os demais são bots determinísticos."
+  (or (find-if (lambda (j) (not (jogador-guerra-bot-p j))) (guerra-jogadores guerra))
+      (first (guerra-jogadores guerra))))
 (defun distancia-guerra (a b)
   (sqrt (+ (expt (- (jogador-guerra-x a) (jogador-guerra-x b)) 2)
            (expt (- (jogador-guerra-z a) (jogador-guerra-z b)) 2))))
+
+(defun angulo-entre-guerra (a b)
+  (atan (- (jogador-guerra-x b) (jogador-guerra-x a))
+        (- (jogador-guerra-z a) (jogador-guerra-z b))))
+
+(defun diferenca-angular-guerra (a b)
+  (let ((d (- a b)))
+    (loop while (> d pi) do (decf d (* 2 pi)))
+    (loop while (< d (- pi)) do (incf d (* 2 pi)))
+    d))
+
+(defun inimigos-vivos-guerra (guerra jogador)
+  (remove-if-not (lambda (outro)
+                   (and (jogador-ativo-p outro)
+                        (not (eq (jogador-guerra-exercito outro)
+                                 (jogador-guerra-exercito jogador)))))
+                 (guerra-jogadores guerra)))
+
+(defun atualizar-animacoes-guerra (guerra intervalo)
+  (dolist (jogador (guerra-jogadores guerra))
+    (setf (jogador-guerra-movimento jogador)
+          (max 0.0 (- (jogador-guerra-movimento jogador) (* intervalo 2.5))))))
 
 (defun emitir-mensagem-guerra (guerra exercito texto &optional (canal :esquadrao))
   (push (list :tempo (guerra-tempo guerra) :exercito (exercito-id exercito)
@@ -160,6 +233,9 @@
 (defun reanimar-jogador-guerra (guerra medico alvo)
   (when (and (eq (jogador-guerra-funcao medico) :medico)
              (jogador-ativo-p medico)
+             (eq (jogador-guerra-estado alvo) :incapacitado)
+             (eq (jogador-guerra-exercito medico) (jogador-guerra-exercito alvo))
+             (zerop (jogador-guerra-reanimacoes alvo))
              (jogador-guerra-estabilizado-p alvo)
              (< (distancia-guerra medico alvo) 4.0))
     (setf (jogador-guerra-estado alvo) :ativo
@@ -170,7 +246,9 @@
 (defun matar-jogador-guerra (guerra jogador &optional (causa "Baixa em combate"))
   (when (member (jogador-guerra-estado jogador) '(:ativo :incapacitado))
     (let ((exercito (jogador-guerra-exercito jogador)))
-      (setf (jogador-guerra-estado jogador) :morto)
+      (setf (jogador-guerra-estado jogador) :morto
+            (jogador-guerra-retorno-em jogador) (+ (guerra-tempo guerra) *tempo-reforco*)
+            (jogador-guerra-gatilho jogador) nil)
       (decf (exercito-reforcos exercito))
       (push (list :jogador (jogador-guerra-id jogador) :causa causa
                   :tempo (guerra-tempo guerra)) (guerra-historico guerra))
@@ -201,27 +279,17 @@
     (pushnew jogador (exercito-fila-reforcos (jogador-guerra-exercito jogador)))
     t))
 
-(defun atualizar-reforcos-guerra (guerra intervalo)
-  (declare (ignore intervalo))
-  (when (>= (guerra-tempo guerra) *tempo-reforco*)
-    (dolist (exercito (guerra-exercitos guerra))
-      (let ((jogador (pop (exercito-fila-reforcos exercito))))
-        (when jogador
-          (setf (jogador-guerra-estado jogador) :ativo
-                (jogador-guerra-z jogador) (quartel-general-z (exercito-quartel-general exercito))
-                (jogador-guerra-x jogador) 0.0)
-          (emitir-mensagem-guerra guerra exercito
-                                  (format nil "~A retornou pelo ponto de reunião." (jogador-guerra-nome jogador))
-                                  :comando))))))
-
 (defun jogadores-no-setor (guerra setor exercito)
-  (count-if (lambda (jogador)
-              (and (eq (jogador-guerra-exercito jogador) exercito)
-                   (jogador-ativo-p jogador)
-                   (<= (sqrt (+ (expt (- (jogador-guerra-x jogador) (setor-guerra-x setor)) 2)
-                                (expt (- (jogador-guerra-z jogador) (setor-guerra-z setor)) 2)))
-                       (setor-guerra-raio setor))))
-            (guerra-jogadores guerra)))
+  ;; O ponto forte dobra o peso de captura, como nas batalhas de referência.
+  (loop for jogador in (guerra-jogadores guerra)
+        when (and (eq (jogador-guerra-exercito jogador) exercito)
+                  (jogador-ativo-p jogador)
+                  (<= (sqrt (+ (expt (- (jogador-guerra-x jogador) (setor-guerra-x setor)) 2)
+                               (expt (- (jogador-guerra-z jogador) (setor-guerra-z setor)) 2)))
+                      (setor-guerra-raio setor)))
+        sum (if (<= (sqrt (+ (expt (- (jogador-guerra-x jogador) (setor-guerra-ponto-forte-x setor)) 2)
+                              (expt (- (jogador-guerra-z jogador) (setor-guerra-ponto-forte-z setor)) 2))) 10.0)
+                 2 1)))
 
 (defun setor-liberado-p (guerra setor)
   (let ((indice (setor-guerra-ordem setor)))
@@ -230,41 +298,9 @@
             :aurora)
         (eq (setor-guerra-dono (nth (1- indice) (guerra-setores guerra))) :bruma))))
 
-(defun atualizar-setores-guerra (guerra intervalo)
-  (dolist (setor (guerra-setores guerra))
-    (when (setor-liberado-p guerra setor)
-      (let* ((aurora (localizar-exercito-guerra guerra :aurora))
-             (bruma (localizar-exercito-guerra guerra :bruma))
-             (contagem-a (jogadores-no-setor guerra setor aurora))
-             (contagem-b (jogadores-no-setor guerra setor bruma))
-             (diferenca (- contagem-a contagem-b)))
-        (setf (setor-guerra-contestacao setor) (float diferenca))
-        (cond ((plusp diferenca)
-               (incf (setor-guerra-progresso setor) (* intervalo .025 diferenca)))
-              ((minusp diferenca)
-               (decf (setor-guerra-progresso setor) (* intervalo .025 (abs diferenca))))
-              (t nil))
-        (setf (setor-guerra-progresso setor) (max -1.0 (min 1.0 (setor-guerra-progresso setor))))
-        (when (>= (setor-guerra-progresso setor) 1.0)
-          (setf (setor-guerra-dono setor) :aurora (setor-guerra-progresso setor) 0.0)
-          (emitir-mensagem-guerra guerra aurora
-                                  (format nil "Setor capturado: ~A." (setor-guerra-nome setor)) :comando))
-        (when (<= (setor-guerra-progresso setor) -1.0)
-          (setf (setor-guerra-dono setor) :bruma (setor-guerra-progresso setor) 0.0)
-          (emitir-mensagem-guerra guerra bruma
-                                  (format nil "Setor capturado: ~A." (setor-guerra-nome setor)) :comando))))))
-
-(defun atualizar-bots-guerra (guerra intervalo)
-  (dolist (jogador (guerra-jogadores guerra))
-    (when (and (jogador-guerra-bot-p jogador) (jogador-ativo-p jogador))
-      (let* ((exercito (jogador-guerra-exercito jogador))
-             (alvo (find-if (lambda (setor)
-                              (not (eq (setor-guerra-dono setor) (exercito-id exercito))))
-                            (guerra-setores guerra)))
-             (z (if alvo (setor-guerra-z alvo) (quartel-general-z (exercito-quartel-general exercito))))
-             (direcao (if (< (jogador-guerra-z jogador) z) 1.0 -1.0)))
-        (incf (jogador-guerra-z jogador) (* direcao intervalo 4.0))
-        (setf (jogador-guerra-angulo jogador) (if (plusp direcao) 0.0 pi))))))
+(defun frente-controlada-p (guerra exercito)
+  (every (lambda (setor) (eq (setor-guerra-dono setor) (exercito-id exercito)))
+         (guerra-setores guerra)))
 
 (defun aplicar-comando-guerra (guerra comando)
   "Valida permissões e aplica um comando já ordenado pelo quadro."
@@ -274,8 +310,8 @@
                            (= (comando-guerra-quadro comando) (1+ (guerra-quadro guerra)))))
       (case tipo
         (:mover (when (jogador-ativo-p jogador)
-                  (incf (jogador-guerra-x jogador) (float (getf dados :x)))
-                  (incf (jogador-guerra-z jogador) (float (getf dados :z))) t))
+                  (mover-jogador-guerra guerra jogador (float (getf dados :x))
+                                        (float (getf dados :z)))))
         (:ordem (ordem-esquadrao-guerra jogador (getf dados :ordem)))
         (:marcador (adicionar-marcador-guerra guerra jogador (getf dados :x) (getf dados :z) (getf dados :rotulo)))
         (:texto (let ((texto (subseq (princ-to-string (getf dados :texto)) 0
@@ -302,15 +338,19 @@
                         (guerra-jogadores guerra)))))
 
 (defun atualizar-guerra (guerra intervalo)
-  (when (guerra-ativa-p guerra)
+  (when (and (guerra-ativa-p guerra) (not (guerra-pausada guerra)))
     (incf (guerra-tempo guerra) intervalo)
     (incf (guerra-quadro guerra))
     (dolist (comando (sort (copy-list (guerra-fila-comandos guerra)) #'<
                            :key #'comando-guerra-quadro))
       (aplicar-comando-guerra guerra comando))
     (setf (guerra-fila-comandos guerra) nil)
+    (atualizar-armas-guerra guerra intervalo)
+    (atualizar-combate-local-guerra guerra intervalo)
+    (atualizar-animacoes-guerra guerra intervalo)
     (atualizar-bots-guerra guerra intervalo)
     (atualizar-setores-guerra guerra intervalo)
+    (atualizar-assalto-qg-guerra guerra intervalo)
     (atualizar-reforcos-guerra guerra intervalo)
     (dolist (jogador (guerra-jogadores guerra))
       (when (and (eq (jogador-guerra-estado jogador) :incapacitado)

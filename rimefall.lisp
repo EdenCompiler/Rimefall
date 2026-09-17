@@ -1,5 +1,9 @@
 (in-package #:rimefall)
 
+;; Estado visual do painel da guerra. Fica no núcleo para estar definido
+;; antes de a apresentação ser compilada pelo ASDF.
+(defvar *hud-guerra-visivel* t)
+
 (defun nova-sessao ()
   (let ((sessao (%criar-sessao))) (montar-mapa sessao) sessao))
 
